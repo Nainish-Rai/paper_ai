@@ -10,6 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.7",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-popover": "^1.0.7",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "ai": "^2.2.35",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.5",
@@ -17,10 +23,13 @@
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.2",
     "next": "14.1.0",
+    "novel": "^0.1.22",
+    "openai": "^4.28.0",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.2.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
