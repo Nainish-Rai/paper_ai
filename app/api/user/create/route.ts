@@ -6,7 +6,8 @@ import User from "@/lib/database/models/user.model";
 connectToDatabase();
 
 export async function POST(request: Request) {
-  const { name, email, password, clerkId, image } = await request.json();
+  const { name, email, username, password, clerkId, image } =
+    await request.json();
   try {
     // check if user already exist
     const user = await User.findOne({ email });
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
     const newUser = new User({
       name,
       email,
+      username,
       password,
       clerkId,
       image,

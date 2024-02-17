@@ -3,6 +3,7 @@ import { unique } from "next/dist/build/utils";
 
 export interface UserType extends Document {
   name: string;
+  username: string;
   email: string;
   password: string;
   clerkId: string;
@@ -13,6 +14,11 @@ const userSchema = new Schema({
   name: {
     type: String,
     required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
   },
   email: {
     type: String,
