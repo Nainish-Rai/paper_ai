@@ -9,7 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@blocknote/core": "^0.11.2",
+    "@blocknote/react": "^0.11.2",
+    "@blocksuite/presets": "^0.11.0",
     "@clerk/nextjs": "^4.29.7",
+    "@liveblocks/client": "^1.9.8",
+    "@liveblocks/node": "^1.9.8",
+    "@liveblocks/react": "^1.9.8",
+    "@liveblocks/yjs": "^1.9.8",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-select": "^2.0.0",
@@ -27,10 +34,11 @@
     "openai": "^4.28.0",
     "react": "^18",
     "react-dom": "^18",
-    "svix": "^1.18.0",
+    "svix": "^1.19.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "use-debounce": "^10.0.0"
+    "use-debounce": "^10.0.0",
+    "yjs": "^13.6.12"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -7,7 +7,8 @@ export default authMiddleware({
     "/sign-up",
     "/api/(.*)",
     "/",
-    "/api/webhooks/clerk",
+    "/api/webhooks(.*)",
+    "/room",
   ],
 });
 
