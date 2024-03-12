@@ -44,7 +44,7 @@ type EditorProps = {
 
 function BlockNote({ doc, provider }: EditorProps) {
   // Get user info from Liveblocks authentication endpoint
-  const userInfo = useSelf((me) => me.info);
+  const userInfo: any = useSelf((me) => me.info);
 
   const editor: BlockNoteEditor = useBlockNote({
     collaboration: {

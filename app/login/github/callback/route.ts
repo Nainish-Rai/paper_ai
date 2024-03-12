@@ -26,7 +26,7 @@ export async function GET(request: Request): Promise<Response> {
     // Check existing user in prisma
     const existingUser = await prisma.user.findUnique({
       where: {
-        github_id: githubUser.id,
+        github_id: parseInt(githubUser.id), // githubUser.id,
       },
     });
 
@@ -52,7 +52,7 @@ export async function GET(request: Request): Promise<Response> {
     await prisma.user.create({
       data: {
         id: userId,
-        github_id: githubUser.id,
+        github_id: parseInt(githubUser.id), // githubUser.id,
         username: githubUser.login,
       },
     });

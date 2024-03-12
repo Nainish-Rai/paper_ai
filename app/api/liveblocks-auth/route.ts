@@ -1,3 +1,4 @@
+import { validateRequest } from "@/lib/lucia/auth";
 import { Liveblocks } from "@liveblocks/node";
 import { NextRequest } from "next/server";
 
@@ -13,11 +14,18 @@ const liveblocks = new Liveblocks({
 export async function POST(request: NextRequest) {
   // Get the current user's unique id from your database
   const userId = Math.floor(Math.random() * 10000);
+  const { user } = await validateRequest();
 
   // Create a session for the current user
   // userInfo is made available in Liveblocks presence hooks, e.g. useOthers
   const session = liveblocks.prepareSession(`user-${userId}`, {
-    userInfo: USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length],
+    userInfo: user
+      ? {
+          name: user.username,
+          color: "#D583F0",
+          picture: "https://liveblocks.io/avatars/avatar-1.png",
+        }
+      : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length],
   });
 
   // Give the user access to the room
