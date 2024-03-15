@@ -63,7 +63,7 @@ export async function GET(request: Request): Promise<Response> {
     await prisma.user.create({
       data: {
         id: userId,
-        github_id: 0,
+        github_id: parseInt(userId),
         google_id: googleUser.id,
         username: googleUser.name,
         email: googleUser.email,
@@ -93,7 +93,7 @@ export async function GET(request: Request): Promise<Response> {
         status: 400,
       });
     }
-    // console.error(e);
+    console.error(e);
     return new Response(null, {
       status: 500,
     });
@@ -108,4 +108,5 @@ interface GoogleUser {
   given_name: string;
   picture: string;
   locale: string;
+  username: string;
 }
