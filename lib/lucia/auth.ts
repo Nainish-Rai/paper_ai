@@ -1,13 +1,11 @@
 import { Lucia } from "lucia";
 
 import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
-import { PrismaClient } from "@prisma/client";
-import { GitHub } from "arctic";
+import prisma from "../prismaClient";
+import { GitHub, Google } from "arctic";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import type { Session, User } from "lucia";
-
-export const prisma = new PrismaClient();
 
 const adapter = new PrismaAdapter(prisma.session, prisma.user);
 
@@ -26,6 +24,10 @@ export const lucia = new Lucia(adapter, {
       // attributes has the type of DatabaseUserAttributes
       githubId: attributes.github_id,
       username: attributes.username,
+      googleId: attributes.google_id,
+      id: attributes.id,
+      email: attributes.email,
+      image: attributes.image,
     };
   },
 });
@@ -69,9 +71,19 @@ export const github = new GitHub(
   process.env.GITHUB_CLIENT_SECRET!
 );
 
+export const google = new Google(
+  process.env.GOOGLE_CLIENT_ID!,
+  process.env.GOOGLE_CLIENT_SECRET!,
+  "http://localhost:3000/login/google/callback"
+);
+
 interface DatabaseUserAttributes {
+  google_id: any;
   github_id: number;
   username: string;
+  id: string;
+  email: string;
+  image: string | null;
 }
 
 declare module "lucia" {

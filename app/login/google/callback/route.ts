@@ -1,4 +1,4 @@
-import { github, lucia } from "@/lib/lucia/auth";
+import { google, lucia } from "@/lib/lucia/auth";
 import prisma from "@/lib/prismaClient";
 import { cookies } from "next/headers";
 import { OAuth2RequestError } from "arctic";
@@ -8,27 +8,36 @@ export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const storedState = cookies().get("github_oauth_state")?.value ?? null;
+  const storedState = cookies().get("google_oauth_state")?.value ?? null;
   if (!code || !state || !storedState || state !== storedState) {
     return new Response(null, {
       status: 400,
     });
   }
-
-  try {
-    const tokens = await github.validateAuthorizationCode(code);
-    const githubUserResponse = await fetch("https://api.github.com/user", {
-      headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
-      },
+  const savedCodeVerifier = cookies().get("codeVerifer")?.value;
+  if (!savedCodeVerifier) {
+    return new Response(null, {
+      status: 400,
     });
-    const githubUser: GitHubUser = await githubUserResponse.json();
-    // console.log(githubUser);
+  }
+  try {
+    const { accessToken, idToken, refreshToken, accessTokenExpiresAt } =
+      await google.validateAuthorizationCode(code, savedCodeVerifier);
+    const googleUserResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v1/userinfo ",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    const googleUser: GoogleUser = await googleUserResponse.json();
+    // console.log(googleUser);
 
     // Check existing user in prisma
     const existingUser = await prisma.user.findUnique({
       where: {
-        github_id: parseInt(githubUser.id), // githubUser.id,
+        email: googleUser.email,
       },
     });
 
@@ -54,12 +63,12 @@ export async function GET(request: Request): Promise<Response> {
     await prisma.user.create({
       data: {
         id: userId,
-        github_id: parseInt(githubUser.id), // githubUser.id,
-        username: githubUser.login,
-        google_id: "",
-        name: githubUser.name,
-        email: githubUser.email || "",
-        image: githubUser.avatar_url,
+        github_id: 0,
+        google_id: googleUser.id,
+        username: googleUser.name,
+        email: googleUser.email,
+        image: googleUser.picture,
+        name: googleUser.name,
       },
     });
 
@@ -84,17 +93,19 @@ export async function GET(request: Request): Promise<Response> {
         status: 400,
       });
     }
+    // console.error(e);
     return new Response(null, {
       status: 500,
     });
   }
 }
 
-interface GitHubUser {
+interface GoogleUser {
   id: string;
-  login: string;
-  avatar_url: string;
-  name: string;
-  username: string;
   email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  picture: string;
+  locale: string;
 }
