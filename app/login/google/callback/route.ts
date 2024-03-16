@@ -3,6 +3,7 @@ import prisma from "@/lib/prismaClient";
 import { cookies } from "next/headers";
 import { OAuth2RequestError } from "arctic";
 import { generateId } from "lucia";
+import { redirect } from "next/navigation";
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -79,12 +80,7 @@ export async function GET(request: Request): Promise<Response> {
       sessionCookie.value,
       sessionCookie.attributes
     );
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: "/userdashboard",
-      },
-    });
+    return redirect("/userdashboard");
   } catch (e) {
     // the specific error message depends on the provider
     if (e instanceof OAuth2RequestError) {
