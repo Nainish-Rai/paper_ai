@@ -71,8 +71,8 @@ function BlockNote({ doc, provider }: EditorProps) {
   }, [theme]);
 
   return (
-    <div className="w-full min-h-screen  ">
-      <div className={styles.editorHeader}>
+    <div className="w-full min-h-screen bg-gray-100  ">
+      <div className=" border-2  border-sky-500">
         <Button
           className={styles.button}
           variant="subtle"
@@ -83,8 +83,12 @@ function BlockNote({ doc, provider }: EditorProps) {
         </Button>
         <Avatars />
       </div>
-      <div className={styles.editorPanel}>
-        <BlockNoteView editor={editor} className="w-full" theme={theme} />
+      <div className="w-full max-w-7xl shadow-xl bg-white  rounded-3xl mx-auto mt-24">
+        <BlockNoteView
+          editor={editor}
+          className="w-full scrollbar-hide overflow-scroll p-6 pt-8 rounded-3xl"
+          theme={theme}
+        />
       </div>
     </div>
   );

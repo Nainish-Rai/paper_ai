@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/lucia/auth";
+import prisma from "@/lib/prismaClient";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

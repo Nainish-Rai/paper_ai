@@ -3,7 +3,6 @@ import { Editor } from "@/components/Editor";
 import "../styles/text-editor.css";
 import "@blocknote/react/style.css";
 import { validateRequest } from "@/lib/lucia/auth";
-import { redirect } from "next/navigation";
 export default async function Home() {
   const { user } = await validateRequest();
   if (!user) {
