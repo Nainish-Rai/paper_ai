@@ -1,6 +1,6 @@
 "use client";
 
-import { BlockNoteEditor } from "@blocknote/core";
+import { Block, BlockNoteEditor } from "@blocknote/core";
 import { BlockNoteView, useBlockNote } from "@blocknote/react";
 import * as Y from "yjs";
 import LiveblocksProvider from "@liveblocks/yjs";
@@ -63,6 +63,7 @@ function BlockNote({ doc, provider }: EditorProps) {
   });
 
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [blocks, setBlocks] = useState<any>([]);
 
   const changeTheme = useCallback(() => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -70,22 +71,39 @@ function BlockNote({ doc, provider }: EditorProps) {
     setTheme(newTheme);
   }, [theme]);
 
+  console.log(editor.document);
+
   return (
     <div className="w-full bg-gray-100 h-full  ">
-      <div className=" border-2 fixed top-0 right-0 p-4 z-50">
-        <Button
+      {/* Navbar Editor */}
+      <div className="fixed flex top-0 right-20 mt-5 shadow-xl rounded-lg border bg-primary-foreground w-64 p-2 z-50">
+        {/* <Button
           className={styles.button}
           variant="subtle"
           onClick={changeTheme}
           aria-label="Switch Theme"
         >
           {theme === "dark" ? <>light</> : <>dark</>}
-        </Button>
+        </Button> */}
         <Avatars />
       </div>
+      {/* Editor */}
       <div className="w-full  shadow-xl bg-white   mx-auto mt-24">
         <BlockNoteView
           editor={editor}
+          // onSelectionChange={() => {
+          //   const selection = editor.getSelection();
+
+          //   // Get the blocks in the current selection and store on the state. If
+          //   // the selection is empty, store the block containing the text cursor
+          //   // instead.
+          //   if (selection !== undefined) {
+          //     setBlocks(selection.blocks);
+          //   } else {
+          //     setBlocks([editor.getTextCursorPosition().block]);
+          //   }
+          //   // console.log(blocks);
+          // }}
           className="w-full scrollbar-hide overflow-scroll p-6 pt-8 rounded-3xl"
           theme={theme}
         />

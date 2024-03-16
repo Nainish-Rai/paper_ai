@@ -6,6 +6,8 @@ import "@blocknote/react/style.css";
 import Room from "../room/page";
 import { Editor } from "@/components/Editor";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
+
 import { validateRequest } from "@/lib/lucia/auth";
 
 type Props = {};

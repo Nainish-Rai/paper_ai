@@ -1,6 +1,12 @@
 import LoginCard from "@/components/custom/LoginCard";
+import { validateRequest } from "@/lib/lucia/auth";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
+  const { user } = await validateRequest();
+  if (user) {
+    redirect("/userdashboard");
+  }
   return (
     <main className="w-full h-screen flex  items-center">
       <div className="w-1/3">

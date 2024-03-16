@@ -12,7 +12,7 @@ model User {
   github_id Int @unique
   google_id String @unique
   name String
-  username String
+  username String @unique
   email String @unique
   image String
   sessions Session[]

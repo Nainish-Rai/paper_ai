@@ -33,12 +33,34 @@ export async function POST(request: NextRequest) {
       : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length],
   });
 
+  // Identify the user and return the result
+  const { status, body } = await liveblocks.identifyUser(
+    {
+      userId: user!.id,
+      groupIds: [], // Optional
+    },
+    {
+      userInfo: {
+        name: user!.username,
+        color:
+          colorsArray[Math.floor((Math.random() * 10) % colorsArray.length)],
+        picture:
+          user!.image ||
+          `https://liveblocks.io/avatars/avatar-${Math.floor(
+            Math.random() * 6
+          )}.png`,
+      },
+    }
+  );
+
+  console.log(body, status);
+
   // Give the user access to the room
   const { room } = await request.json();
   session.allow(room, session.FULL_ACCESS);
 
   // Authorize the user and return the result
-  const { body, status } = await session.authorize();
+  // const { body, status } = await session.authorize();
   return new Response(body, { status });
 }
 
