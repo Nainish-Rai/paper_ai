@@ -5,8 +5,11 @@ import { RoomProvider } from "@/liveblocks.config";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ClientSideSuspense } from "@liveblocks/react";
 
-export default function Room({ children }: { children: ReactNode }) {
-  // const roomId = useOverrideRoomId("nextjs-yjs-blocknote-advanced");
+interface Props {
+  children: ReactNode;
+}
+
+const Room: React.FC<Props> = ({ children }) => {
   const pathname = usePathname();
   const roomId = pathname?.split("/")[2];
   console.log(roomId);
@@ -22,7 +25,9 @@ export default function Room({ children }: { children: ReactNode }) {
       </ClientSideSuspense>
     </RoomProvider>
   );
-}
+};
+
+export default Room;
 
 /**
  * This function is used when deploying an example on liveblocks.io.
