@@ -104,7 +104,7 @@ function BlockNote({ doc, provider }: EditorProps) {
           //   }
           //   // console.log(blocks);
           // }}
-          className="w-full scrollbar-hide overflow-scroll p-6 pt-8 rounded-3xl"
+          className="w-full min-h-screen scrollbar-hide overflow-scroll p-6 pt-8 rounded-3xl"
           theme={theme}
         />
       </div>

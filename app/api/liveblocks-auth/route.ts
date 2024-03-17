@@ -18,37 +18,41 @@ export async function POST(request: NextRequest) {
 
   // Create a session for the current user
   // userInfo is made available in Liveblocks presence hooks, e.g. useOthers
-  const session = liveblocks.prepareSession(`user-${userId}`, {
-    userInfo: user
-      ? {
-          name: user.username,
-          color:
-            colorsArray[Math.floor((Math.random() * 10) % colorsArray.length)],
-          picture:
-            user.image ||
-            `https://liveblocks.io/avatars/avatar-${Math.floor(
-              Math.random() * 6
-            )}.png`,
-        }
-      : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length],
-  });
+  // const session = liveblocks.prepareSession(`user-${userId}`, {
+  //   userInfo: user
+  //     ? {
+  //         name: user.username,
+  //         color:
+  //           colorsArray[Math.floor((Math.random() * 10) % colorsArray.length)],
+  //         picture:
+  //           user.image ||
+  //           `https://liveblocks.io/avatars/avatar-${Math.floor(
+  //             Math.random() * 6
+  //           )}.png`,
+  //       }
+  //     : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length],
+  // });
 
   // Identify the user and return the result
   const { status, body } = await liveblocks.identifyUser(
     {
-      userId: user!.id,
+      userId: user
+        ? user.id
+        : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length].name,
       groupIds: [], // Optional
     },
     {
       userInfo: {
-        name: user!.username,
+        name: user
+          ? user.username
+          : USER_INFO[Math.floor(Math.random() * 10) % USER_INFO.length].name,
         color:
           colorsArray[Math.floor((Math.random() * 10) % colorsArray.length)],
-        picture:
-          user!.image ||
-          `https://liveblocks.io/avatars/avatar-${Math.floor(
-            Math.random() * 6
-          )}.png`,
+        picture: user
+          ? user.image
+          : `https://liveblocks.io/avatars/avatar-${Math.floor(
+              Math.random() * 6
+            )}.png`,
       },
     }
   );
@@ -56,8 +60,8 @@ export async function POST(request: NextRequest) {
   // console.log(body, status);
 
   // Give the user access to the room
-  const { room } = await request.json();
-  session.allow(room, session.FULL_ACCESS);
+  // const { room } = await request.json();
+  // session.allow(room, session.FULL_ACCESS);
 
   // Authorize the user and return the result
   // const { body, status } = await session.authorize();

@@ -12,7 +12,7 @@ async function DashboardSideBar({}: Props) {
       <h1 className="h4 ">Dashboard </h1>
       <Logout />
       <CreateRoom userInfo={user!} />
-      <RoomLists username={user!.username} />
+      {user && <RoomLists username={user.username} />}
     </nav>
   );
 }
