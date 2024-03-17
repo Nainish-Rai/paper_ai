@@ -64,7 +64,7 @@ export async function GET(request: Request): Promise<Response> {
     await prisma.user.create({
       data: {
         id: userId,
-        github_id: parseInt(userId),
+        github_id: parseInt(googleUser.id.slice(0, 4)),
         google_id: googleUser.id,
         username: googleUser.name,
         email: googleUser.email,

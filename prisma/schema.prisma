@@ -17,7 +17,13 @@ model User {
   image String
   sessions Session[]
 }
-
+model Room{
+  id String @id
+  name String
+  owner String
+  content String
+  users String
+}
 model Session {
   id        String   @id
   userId    String

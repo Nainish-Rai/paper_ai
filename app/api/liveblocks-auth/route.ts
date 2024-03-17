@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
   );
 
-  console.log(body, status);
+  // console.log(body, status);
 
   // Give the user access to the room
   const { room } = await request.json();

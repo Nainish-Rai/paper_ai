@@ -1,11 +1,12 @@
 import { lucia, validateRequest } from "@/lib/lucia/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Button } from "@/components/ui/button";
 
 export default async function Logout() {
   return (
     <form action={logout}>
-      <button>Sign out</button>
+      <Button>Sign out</Button>
     </form>
   );
 }

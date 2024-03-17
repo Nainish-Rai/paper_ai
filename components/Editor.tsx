@@ -71,12 +71,12 @@ function BlockNote({ doc, provider }: EditorProps) {
     setTheme(newTheme);
   }, [theme]);
 
-  console.log(editor.document);
+  // console.log(editor.document);
 
   return (
     <div className="w-full bg-gray-100 h-full  ">
       {/* Navbar Editor */}
-      <div className="fixed flex top-0 right-20 mt-5 shadow-xl rounded-lg border bg-primary-foreground w-64 p-2 z-50">
+      <div className="fixed flex top-0 right-20 mt-5 shadow-xl rounded-full border bg-primary-foreground w-fit p-1 z-50">
         {/* <Button
           className={styles.button}
           variant="subtle"

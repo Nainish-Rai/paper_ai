@@ -5,8 +5,14 @@ import { RoomProvider } from "@/liveblocks.config";
 import { useSearchParams } from "next/navigation";
 import { ClientSideSuspense } from "@liveblocks/react";
 
-export default function Room({ children }: { children: ReactNode }) {
-  const roomId = useOverrideRoomId("nextjs-yjs-blocknote-advanced");
+export default function Room({
+  children,
+  roomId,
+}: {
+  children: ReactNode;
+  roomId: string;
+}) {
+  // const roomId = useOverrideRoomId("nextjs-yjs-blocknote-advanced");
 
   return (
     <RoomProvider
