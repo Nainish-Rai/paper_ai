@@ -6,13 +6,14 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { ClientSideSuspense } from "@liveblocks/react";
 
 interface Props {
-  children: ReactNode;
+  Editor: any;
+  roomId: string;
 }
 
-const Room: React.FC<Props> = ({ children }) => {
-  const pathname = usePathname();
-  const roomId = pathname?.split("/")[2];
-  console.log(roomId);
+const Room = ({ Editor, roomId }: Props) => {
+  // const pathname = usePathname();
+  // const roomId = pathname?.split("/")[2];
+  // console.log(roomId);
   return (
     <RoomProvider
       id={roomId ? roomId : "nextjs-yjs-blocknote-advanced"}
@@ -21,7 +22,7 @@ const Room: React.FC<Props> = ({ children }) => {
       }}
     >
       <ClientSideSuspense fallback={<>Loading.....</>}>
-        {() => children}
+        {() => Editor}
       </ClientSideSuspense>
     </RoomProvider>
   );

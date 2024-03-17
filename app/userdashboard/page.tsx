@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import "@blocksuite/presets/themes/affine.css";
 import "@/styles/text-editor.css";
 import "@blocknote/react/style.css";
-import Room from "@/app/room/page";
+import Room from "@/app/room/Room";
 import { Editor } from "@/components/Editor";
 import { redirect } from "next/navigation";
 
@@ -19,9 +19,7 @@ async function UserDashboard({}: Props) {
 
   return (
     <div className="w-full min-h-screen overflow-scroll overflow-x-hidden">
-      <Room>
-        <Editor />
-      </Room>
+      <Room Editor={<Editor />} roomId="nextjs-yjs-blocknote-advanced" />
     </div>
   );
 }

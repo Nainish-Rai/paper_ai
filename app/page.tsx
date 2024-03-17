@@ -1,4 +1,4 @@
-import Room from "./room/page";
+import Room from "./room/Room";
 import { Editor } from "@/components/Editor";
 import "../styles/text-editor.css";
 import "@blocknote/react/style.css";
@@ -13,9 +13,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between ">
       <h1 className="heading1 text-xl font-bold">Welcome back,</h1>
-      <Room>
-        <Editor />
-      </Room>
+      <Room Editor={<Editor />} roomId="nextjs-yjs-blocknote-advanced" />
     </main>
   );
 }
