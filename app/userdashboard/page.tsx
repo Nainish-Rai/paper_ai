@@ -19,7 +19,7 @@ async function UserDashboard({}: Props) {
 
   return (
     <div className="w-full min-h-screen overflow-scroll overflow-x-hidden">
-      <Room roomId={"7ecaaf93-136f-43d8-b646-7c753e9cd0f3"}>
+      <Room>
         <Editor />
       </Room>
     </div>

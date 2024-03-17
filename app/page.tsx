@@ -13,7 +13,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between ">
       <h1 className="heading1 text-xl font-bold">Welcome back,</h1>
-      <Room roomId="nextjs-yjs-blocknote-advanced">
+      <Room>
         <Editor />
       </Room>
     </main>

@@ -2,20 +2,17 @@
 
 import { ReactNode, useMemo } from "react";
 import { RoomProvider } from "@/liveblocks.config";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ClientSideSuspense } from "@liveblocks/react";
-type SearchParams = string;
-type Props = { roomId: SearchParams };
 
-export default function Room({
-  children,
-  roomId,
-}: Props & { children: ReactNode }) {
+export default function Room({ children }: { children: ReactNode }) {
   // const roomId = useOverrideRoomId("nextjs-yjs-blocknote-advanced");
-
+  const pathname = usePathname();
+  const roomId = pathname?.split("/")[2];
+  console.log(roomId);
   return (
     <RoomProvider
-      id={roomId as string}
+      id={roomId ? roomId : "nextjs-yjs-blocknote-advanced"}
       initialPresence={{
         cursor: null,
       }}

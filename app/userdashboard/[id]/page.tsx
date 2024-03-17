@@ -22,7 +22,7 @@ function UserDashboard({}: Props) {
 
   return (
     <div className="w-full min-h-screen overflow-scroll overflow-x-hidden">
-      <Room roomId={roomId.id as string}>
+      <Room>
         <Editor />
       </Room>
     </div>
