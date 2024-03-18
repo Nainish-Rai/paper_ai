@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "../ui/button";
+import { MdAddCircleOutline } from "react-icons/md";
 type Props = {
   userInfo: User;
 };
@@ -46,7 +47,9 @@ function CreateRoom({ userInfo }: Props) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button>CreateRoom</Button>
+        <Button className="w-full gap-1">
+          <MdAddCircleOutline className="w-4 h-4" /> New Note
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

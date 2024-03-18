@@ -18,7 +18,7 @@ async function UserDashboard({}: Props) {
   }
 
   return (
-    <div className="w-full min-h-screen overflow-scroll overflow-x-hidden">
+    <div className="w-full min-h-screen shadow-xl overflow-scroll overflow-x-hidden">
       <Room Editor={<Editor />} roomId="nextjs-yjs-blocknote-advanced" />
     </div>
   );

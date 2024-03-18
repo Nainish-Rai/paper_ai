@@ -74,9 +74,9 @@ function BlockNote({ doc, provider }: EditorProps) {
   // console.log(editor.document);
 
   return (
-    <div className="w-full bg-gray-100 h-full  ">
+    <div className="w-full bg-gray-100 h-full shadow-md  ">
       {/* Navbar Editor */}
-      <div className="fixed flex top-0 right-20 mt-5 shadow-xl rounded-full border bg-primary-foreground w-fit p-1 z-50">
+      <div className="fixed flex top-0 right-20 mt-5 shadow-md rounded-full border bg-primary-foreground w-fit p-1 z-50">
         {/* <Button
           className={styles.button}
           variant="subtle"
@@ -88,7 +88,7 @@ function BlockNote({ doc, provider }: EditorProps) {
         <Avatars />
       </div>
       {/* Editor */}
-      <div className="w-full  shadow-xl bg-white   mx-auto mt-24">
+      <div className="w-full  shadow-xl bg-white   mx-auto mt-16">
         <BlockNoteView
           editor={editor}
           // onSelectionChange={() => {
@@ -104,7 +104,7 @@ function BlockNote({ doc, provider }: EditorProps) {
           //   }
           //   // console.log(blocks);
           // }}
-          className="w-full min-h-screen scrollbar-hide overflow-scroll p-6 pt-8 rounded-3xl"
+          className="w-full min-h-screen scrollbar-hide overflow-scroll md:p-6  pt-4 rounded-3xl"
           theme={theme}
         />
       </div>

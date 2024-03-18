@@ -1,15 +1,7 @@
 import { lucia, validateRequest } from "@/lib/lucia/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Button } from "@/components/ui/button";
-
-export default async function Logout() {
-  return (
-    <form action={logout}>
-      <Button className="w-full justify-self-end">Sign out</Button>
-    </form>
-  );
-}
+import { NextResponse } from "next/server";
 
 async function logout(): Promise<ActionResult> {
   "use server";
@@ -33,4 +25,8 @@ async function logout(): Promise<ActionResult> {
 
 interface ActionResult {
   error: string | null;
+}
+
+export async function GET() {
+  return NextResponse.json(await logout());
 }
