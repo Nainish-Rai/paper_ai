@@ -7,6 +7,7 @@ datasource db {
   url               = env("DATABASE_URL")
   directUrl         = env("DIRECT_URL")
 }
+
 model User {
   id       String    @id
   github_id Int @unique
@@ -15,18 +16,12 @@ model User {
   username String @unique
   email String @unique
   image String
-  sessions Session[]
 }
+
 model Room{
   id String @id
   name String
   owner String
   content String
   users String
-}
-model Session {
-  id        String   @id
-  userId    String
-  expiresAt DateTime
-  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
