@@ -9,26 +9,24 @@ const SALT_ROUNDS = 10;
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name, username } = await req.json();
+    const { email, password } = await req.json();
 
     // Validate input
-    if (!email || !password || !name || !username) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { username }],
-      },
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User with this email or username already exists" },
+        { error: "User with this email already exists" },
         { status: 409 }
       );
     }
@@ -36,17 +34,21 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, SALT_ROUNDS);
 
-    // Create new user
+    // Create new user with email as base for generated fields
+    const emailName = email.split("@")[0];
     const user = await prisma.user.create({
       data: {
         id: randomUUID(),
         email,
-        name,
-        username,
+        name: emailName, // Use part before @ as name
+        username: `${emailName}_${randomUUID().slice(0, 8)}`, // Generate unique username
         password: hashedPassword,
         image: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-          name
-        )}`, // Default avatar
+          email
+        )}`,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 

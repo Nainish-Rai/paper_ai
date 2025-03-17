@@ -13,8 +13,8 @@ model User {
   id            String    @id
   github_id     Int?      @unique
   google_id     String?   @unique
-  name          String
-  username      String    @unique
+  name          String?
+  username      String?   @unique
   email         String    @unique
   image         String?
   password      String?
