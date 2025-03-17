@@ -9,6 +9,7 @@
 - Tailwind CSS
 - Shadcn UI Components
 - Zustand (State Management)
+- TipTap Editor
 
 ### Backend
 
@@ -41,7 +42,10 @@
   "typescript": "5.x",
   "tailwindcss": "3.x",
   "prisma": "5.x",
-  "@liveblocks/react": "latest"
+  "@liveblocks/react": "latest",
+  "@tiptap/react": "latest",
+  "@tiptap/pm": "latest",
+  "@tiptap/starter-kit": "latest"
 }
 ```
 

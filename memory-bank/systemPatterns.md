@@ -34,6 +34,13 @@ flowchart TD
 - Presence awareness system
 - Conflict resolution handling
 
+### Editor Implementation
+
+- TipTap for rich text editing
+- LiveBlocks integration for real-time sync
+- Collaborative editing features
+- Extensible command system
+
 ### State Management
 
 - Zustand for client-state
@@ -72,6 +79,7 @@ flowchart TD
 1. Next.js App Router for routing
 2. Prisma with Postgres for data layer
 3. LiveBlocks for real-time features
-4. Tailwind CSS for styling
-5. TypeScript for type safety
-6. Shadcn UI for component base
+4. TipTap with LiveBlocks for editor
+5. Tailwind CSS for styling
+6. TypeScript for type safety
+7. Shadcn UI for component base

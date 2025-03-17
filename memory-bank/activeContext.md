@@ -6,7 +6,7 @@ The project is in its initial development phase with focus on:
 
 1. Authentication system implementation
 2. Basic room creation functionality
-3. Editor integration with LiveBlocks
+3. TipTap editor integration with LiveBlocks
 
 ## Recent Changes
 
@@ -14,6 +14,7 @@ The project is in its initial development phase with focus on:
 - Implemented email-based authentication
 - Created basic room management
 - Added LiveBlocks configuration
+- Switched to TipTap editor for rich text editing
 
 ## Active Decisions
 
@@ -25,9 +26,10 @@ The project is in its initial development phase with focus on:
 
 2. Editor Implementation
 
-   - Real-time collaboration setup
-   - Basic text editing features
-   - Presence awareness integration
+   - TipTap for rich text editing
+   - LiveBlocks integration for real-time sync
+   - Collaborative editing features
+   - Extensible plugin system
 
 3. Room Management
    - Room creation and joining
@@ -44,7 +46,7 @@ The project is in its initial development phase with focus on:
 
 2. Performance
    - Real-time sync optimization
-   - Editor performance
+   - TipTap editor performance
    - Database query optimization
 
 ## Next Steps
@@ -57,9 +59,10 @@ The project is in its initial development phase with focus on:
 
 2. Enhance Editor Features
 
-   - Rich text capabilities
-   - Collaboration features
-   - AI integration
+   - TipTap extension configuration
+   - Rich text collaboration features
+   - AI integration with editor
+   - Custom menu and toolbar
 
 3. Room System
 
