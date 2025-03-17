@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,50 +16,30 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { nanoid } from "nanoid";
-import { authClient } from "@/lib/auth/client"; // import the auth client
+import { useAuth } from "@/lib/auth/provider";
+import { useCreateRoom } from "@/lib/hooks/useRooms";
 
 export function CreateRoom() {
-  const {
-    data: session,
-    isPending, //loading state
-    error: sessionError, //error object
-    refetch, //refetch the session
-  } = authClient.useSession();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [roomName, setRoomName] = useState("");
 
-  const [error, setError] = useState<string | null>(null);
+  const createRoomMutation = useCreateRoom();
 
   const createRoom = async () => {
-    if (!roomName.trim() || !session?.session.userId) return;
+    if (!roomName.trim() || !user?.id) return;
 
     try {
-      setIsLoading(true);
-      setError(null);
       const roomId = nanoid();
-
-      const response = await fetch("/api/room/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: roomName.trim(),
-          id: roomId,
-          owner: session.session.userId,
-          users: [], // Initially empty, users can be added later
-          content: "",
-        }),
+      await createRoomMutation.mutateAsync({
+        name: roomName.trim(),
+        id: roomId,
+        owner: user.id,
+        users: [], // Initially empty, users can be added later
+        content: "",
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create room");
-      }
 
       toast({
         title: "Success",
@@ -73,14 +53,11 @@ export function CreateRoom() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create room";
-      setError(message);
       toast({
         title: "Error",
         description: message,
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -88,7 +65,6 @@ export function CreateRoom() {
     setIsOpen(open);
     if (!open) {
       setRoomName("");
-      setError(null);
     }
   };
 
@@ -118,24 +94,31 @@ export function CreateRoom() {
                 if (
                   e.key === "Enter" &&
                   roomName.trim() &&
-                  session?.session.userId &&
-                  !isLoading
+                  user?.id &&
+                  !createRoomMutation.isPending
                 ) {
                   createRoom();
                 }
               }}
-              disabled={isLoading}
-              aria-invalid={!!error}
+              disabled={createRoomMutation.isPending}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {createRoomMutation.error && (
+              <p className="text-sm text-destructive">
+                {createRoomMutation.error instanceof Error
+                  ? createRoomMutation.error.message
+                  : "Failed to create room"}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter>
           <Button
             onClick={createRoom}
-            disabled={!roomName.trim() || isLoading || !session?.session.userId}
+            disabled={
+              !roomName.trim() || createRoomMutation.isPending || !user?.id
+            }
           >
-            {isLoading ? "Creating..." : "Create Room"}
+            {createRoomMutation.isPending ? "Creating..." : "Create Room"}
           </Button>
         </DialogFooter>
       </DialogContent>

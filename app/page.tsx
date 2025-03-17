@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import "../styles/text-editor.css";
 import "@blocknote/react/style.css";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function Home() {
   const session = await auth.api.getSession({
@@ -13,11 +15,7 @@ export default async function Home() {
   // Redirect to dashboard if authenticated, otherwise to login
   if (session) {
     redirect("/dashboard");
-  } else {
-    redirect("/login");
   }
-
-  // This code won't execute due to redirects above
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
@@ -37,6 +35,10 @@ export default async function Home() {
           Your next-generation application with theme switching support. Click
           the sun/moon icon to toggle between light and dark modes.
         </p>
+
+        <Link href="/login">
+          <Button className="mt-4">Get Started</Button>
+        </Link>
       </div>
     </main>
   );
