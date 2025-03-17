@@ -1,27 +1,80 @@
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id       String    @id
-  github_id Int @unique
-  google_id String @unique
-  name String
-  username String @unique
-  email String @unique
-  image String
+  id            String    @id
+  github_id     Int?      @unique
+  google_id     String?   @unique
+  name          String
+  username      String    @unique
+  email         String    @unique
+  image         String?
+  password      String?
+  sessions      Session[]
+  emailVerified Boolean
+  createdAt     DateTime
+  updatedAt     DateTime
+  accounts      Account[]
+
+  @@map("user")
 }
 
-model Room{
-  id String @id
-  name String
-  owner String
+model Session {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  ipAddress String?
+  userAgent String?
+
+  @@map("session")
+}
+
+model Room {
+  id      String @id
+  name    String
+  owner   String
   content String
-  users String
+  users   String
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
 }
