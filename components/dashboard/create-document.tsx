@@ -16,13 +16,17 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useDocumentStore } from "@/lib/stores/documentStore";
 import { Plus, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
-export function CreateDocument() {
+interface CreateDocumentProps {
+  roomId: string;
+}
+
+export function CreateDocument({ roomId }: CreateDocumentProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const router = useRouter();
   const { toast } = useToast();
-  const [roomId, setRoomId] = useState("");
   const { createDocument, isLoading } = useDocumentStore();
 
   const handleCreate = async () => {
@@ -69,12 +73,13 @@ export function CreateDocument() {
         <DialogHeader>
           <DialogTitle>Create New Document</DialogTitle>
           <DialogDescription>
-            Create a new document in this room. You can start editing it right
-            away.
+            Create a new document in a room. Specify the room ID and document
+            title.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
+            <Label htmlFor="title">Document Title</Label>
             <Input
               id="title"
               placeholder="Enter document title"
@@ -85,7 +90,6 @@ export function CreateDocument() {
                   handleCreate();
                 }
               }}
-              autoFocus
             />
           </div>
         </div>
@@ -97,7 +101,7 @@ export function CreateDocument() {
           >
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={isLoading}>
+          <Button onClick={handleCreate} disabled={isLoading || !title.trim()}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

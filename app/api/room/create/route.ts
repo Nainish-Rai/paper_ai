@@ -1,17 +1,54 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import prisma from "@/lib/prismaClient";
+import { createRoomSchema, type RoomResponse } from "@/types/rooms";
+import { auth } from "@/lib/auth";
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  // console.log(body);
-
+export async function POST(req: NextRequest) {
   try {
-    const room = await fetch("https://api.liveblocks.io/v2/rooms", {
+    // Get session using better-auth
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { message: "Unauthorized - Please log in" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const validationResult = createRoomSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          message: "Validation error",
+          error: validationResult.error.errors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, id, owner, users, content } = validationResult.data;
+
+    // Verify owner is the current user
+    if (owner !== session.user.id) {
+      return NextResponse.json(
+        { message: "Unauthorized - Can only create rooms for yourself" },
+        { status: 403 }
+      );
+    }
+
+    // Create room in LiveBlocks
+    const liveblocks = await fetch("https://api.liveblocks.io/v2/rooms", {
       method: "POST",
       body: JSON.stringify({
-        id: body.id,
+        id,
         usersAccesses: {
-          [body.owner]: ["room:write"],
+          [owner]: ["room:write"],
+          ...Object.fromEntries(users.map((user) => [user, ["room:write"]])),
         },
         defaultAccesses: ["room:write"],
       }),
@@ -20,43 +57,52 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET}`,
       },
     });
-    const result = await room.json();
-    if (result.error) {
+
+    const liveblockResult = await liveblocks.json();
+    if (liveblockResult.error) {
       return NextResponse.json(
-        { message: "Something went wrong result not found" },
+        {
+          message: "Failed to create LiveBlocks room",
+          error: liveblockResult.error,
+        },
         { status: 500 }
       );
     }
 
-    const res = await prisma.room.create({
+    // Create room in database
+    const dbRoom = await prisma.room.create({
       data: {
-        name: body.name,
-        owner: body.owner,
-        users: body.users,
-        content: body.content,
-        id: body.id,
+        id,
+        name,
+        owner,
+        ownerId: owner, // Set the ownerId for proper relation
+        users,
+        content: content || "",
       },
     });
-    console.log(res);
 
-    if (!res || !result) {
-      return NextResponse.json(
-        { message: "Something went wrong res not found" },
-        { status: 500 }
-      );
-    }
+    const response: RoomResponse = {
+      message: "Room created successfully",
+      data: liveblockResult,
+      room: {
+        id: dbRoom.id,
+        name: dbRoom.name,
+        owner: dbRoom.owner,
+        users: dbRoom.users,
+        content: dbRoom.content || undefined,
+        createdAt: dbRoom.createdAt,
+        updatedAt: dbRoom.updatedAt,
+      },
+    };
 
+    return NextResponse.json(response, { status: 200 });
+  } catch (error) {
+    console.error("Room creation error:", error);
     return NextResponse.json(
       {
-        message: "Room created successfully",
-        data: result,
-        room: res,
+        message: "Failed to create room",
+        error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Something went wrong end me", error },
       { status: 500 }
     );
   }

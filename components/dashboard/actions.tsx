@@ -9,8 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Users, Settings, HelpCircle } from "lucide-react";
+import { Users, Settings, HelpCircle } from "lucide-react";
 import { CreateDocument } from "./create-document";
+import { CreateRoom } from "./create-room";
 import { useRoom } from "@/lib/contexts/RoomContext";
 
 export function DashboardActions() {
@@ -18,9 +19,12 @@ export function DashboardActions() {
     <Card>
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
-        <CardDescription>Create and manage your documents</CardDescription>
+        <CardDescription>
+          Create and manage your rooms and documents
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <CreateRoom />
         <CreateDocument />
 
         <Button variant="outline" className="w-full justify-start" asChild>

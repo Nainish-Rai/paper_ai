@@ -2,14 +2,18 @@
 
 import { authClient } from "@/lib/auth/client";
 import { redirect, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import prisma from "@/lib/prismaClient";
 import { CreateDocument } from "@/components/dashboard/create-document";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Document } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function RoomPage({ params }: { params: { roomId: string } }) {
+export default function RoomPage({
+  params,
+}: {
+  params: Promise<{ roomId: string }> | { roomId: string };
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [room, setRoom] = useState<{
@@ -17,6 +21,10 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
     documents: Document[];
   } | null>(null);
   const { data: session, isPending } = authClient.useSession();
+
+  // Unwrap params with React.use()
+  const unwrappedParams = params instanceof Promise ? use(params) : params;
+  const roomId = unwrappedParams.roomId;
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -26,7 +34,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
 
     const fetchRoom = async () => {
       try {
-        const response = await fetch(`/api/room/${params.roomId}`);
+        const response = await fetch(`/api/room/${roomId}`);
         if (!response.ok) {
           router.push("/dashboard");
           return;
@@ -44,7 +52,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
     if (session) {
       fetchRoom();
     }
-  }, [params.roomId, session, isPending, router]);
+  }, [roomId, session, isPending, router]);
 
   if (loading || isPending) {
     return (
@@ -87,10 +95,18 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <CreateDocument roomId={params.roomId} />
+            <CreateDocument roomId={roomId} />
             <div className="grid gap-4">
               {room.documents.map((document) => (
-                <Card key={document.id}>
+                <Card
+                  key={document.id}
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/room/${roomId}/document/${document.id}`
+                    )
+                  }
+                >
                   <CardHeader>
                     <CardTitle className="text-lg">{document.title}</CardTitle>
                   </CardHeader>
