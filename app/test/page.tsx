@@ -1,16 +1,24 @@
 "use client";
 
-import Tiptap from "@/components/custom/TipTapEditor";
+import { useState } from "react";
+import { useDocumentStore } from "@/lib/stores/documentStore";
+import { TipTapEditor } from "@/components/custom/TipTapEditor";
+import { Card } from "@/components/ui/card";
 
 export default function TestPage() {
+  // For testing purposes, we'll use a dummy document
+  const initialContent = "<p>This is a test document.</p>";
+  const dummyDocumentId = "test-doc-1";
+
   return (
-    <div className="container mx-auto p-6">
-      <div className="rounded-lg border bg-card text-card-foreground shadow">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4">TipTap Editor Test</h2>
-          <Tiptap className="min-h-[300px]" />
-        </div>
-      </div>
+    <div className="container mx-auto py-6">
+      <Card className="p-6">
+        <TipTapEditor
+          documentId={dummyDocumentId}
+          initialContent={initialContent}
+          className="min-h-[500px]"
+        />
+      </Card>
     </div>
   );
 }

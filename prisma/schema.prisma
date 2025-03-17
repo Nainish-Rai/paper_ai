@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,12 +9,12 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  github_id     Int?      @unique
-  google_id     String?   @unique
+  id            String     @id
+  github_id     Int?       @unique
+  google_id     String?    @unique
   name          String?
-  username      String?   @unique
-  email         String    @unique
+  username      String?    @unique
+  email         String     @unique
   image         String?
   password      String?
   sessions      Session[]
@@ -23,6 +22,8 @@ model User {
   createdAt     DateTime
   updatedAt     DateTime
   accounts      Account[]
+  documents     Document[] // Added relation to documents
+  rooms         Room[]     // Added relation to rooms
 
   @@map("user")
 }
@@ -42,11 +43,28 @@ model Session {
 }
 
 model Room {
-  id      String @id
-  name    String
-  owner   String
-  content String
-  users   String
+  id        String     @id
+  name      String
+  owner     String
+  ownerId   String     // Added foreign key to User
+  content   String?
+  users     String[]   // Changed to string array
+  documents Document[] // Added relation to documents
+  user      User       @relation(fields: [ownerId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?  @db.Text
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -57,13 +75,13 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
-  idToken               String?
+  idToken              String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   scope                 String?
-  password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
+  password             String?
+  createdAt            DateTime
+  updatedAt            DateTime
 
   @@map("account")
 }
