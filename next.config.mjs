@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ["res.cloudinary.com"],
+  },
   webpack: (config) => {
     // Normalize Windows paths to prevent escape character issues
     config.watchOptions = {
