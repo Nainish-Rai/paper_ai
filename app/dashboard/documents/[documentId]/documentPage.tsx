@@ -8,37 +8,20 @@ import { Room } from "@/app/Room";
 import { CollaborativeEditor } from "@/components/CollaborativeEditor";
 import BasicEditor from "@/components/BasicEditor";
 import { useDocument } from "@/lib/hooks/useDocument";
-import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function DocumentPageClient({
-  roomId,
   documentId,
 }: {
-  roomId: string;
   documentId: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: document, isLoading: documentLoading } =
     useDocument(documentId);
-
-  // Mutation for updating document content
-  const updateMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const response = await fetch(`/api/documents/${documentId}/update`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update document");
-      }
-      return response.json();
-    },
-  });
 
   if (!session && !sessionLoading) {
     router.push("/login");
@@ -60,15 +43,42 @@ export default function DocumentPageClient({
   return (
     <div className="mx-auto pb-6">
       <Card className="w-full">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h1 className="text-2xl font-semibold">{document?.title}</h1>
+          {!document?.shared && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "Sharing functionality will be available soon!",
+                });
+              }}
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          )}
+        </div>
         <CardContent>
           {document?.shared ? (
-            <Room roomId={`${roomId}:${documentId}`}>
+            <Room roomId={`personal:${documentId}`}>
               <CollaborativeEditor />
             </Room>
           ) : (
             <BasicEditor
               content={document?.content}
-              onChange={(content) => updateMutation.mutate(content)}
+              onChange={(content) => {
+                // Handle content update
+                fetch(`/api/documents/${documentId}/update`, {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ content }),
+                });
+              }}
             />
           )}
         </CardContent>

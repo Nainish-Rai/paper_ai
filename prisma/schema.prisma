@@ -17,13 +17,13 @@ model User {
   email         String     @unique
   image         String?
   password      String?
-  sessions      Session[]
   emailVerified Boolean
   createdAt     DateTime
   updatedAt     DateTime
+  documents     Document[]
+  rooms         Room[]
   accounts      Account[]
-  documents     Document[] // Added relation to documents
-  rooms         Room[]     // Added relation to rooms
+  sessions      Session[]
 
   @@map("user")
 }
@@ -35,9 +35,9 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
   ipAddress String?
   userAgent String?
+  user      User     @relation(fields: [userId], references: [id])
 
   @@map("session")
 }
@@ -46,25 +46,26 @@ model Room {
   id        String     @id
   name      String
   owner     String
-  ownerId   String     // Added foreign key to User
   content   String?
-  users     String[]   // Changed to string array
-  documents Document[] // Added relation to documents
-  user      User       @relation(fields: [ownerId], references: [id])
   createdAt DateTime   @default(now())
+  ownerId   String
   updatedAt DateTime   @updatedAt
+  users     String[]
+  documents Document[]
+  user      User       @relation(fields: [ownerId], references: [id])
 }
 
 model Document {
   id        String   @id @default(cuid())
   title     String
   content   String?  @db.Text
-  roomId    String
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    String?
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  shared    Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  room      Room?    @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -72,7 +73,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken              String?
@@ -82,6 +82,7 @@ model Account {
   password             String?
   createdAt            DateTime
   updatedAt            DateTime
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }

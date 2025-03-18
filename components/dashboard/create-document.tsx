@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -19,12 +20,13 @@ import { Plus, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface CreateDocumentProps {
-  roomId: string;
+  roomId?: string;
 }
 
-export function CreateDocument({ roomId }: CreateDocumentProps) {
+export function CreateDocument({ roomId }: CreateDocumentProps = {}) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [shared, setShared] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { createDocument, isLoading } = useDocumentStore();
@@ -40,16 +42,18 @@ export function CreateDocument({ roomId }: CreateDocumentProps) {
     }
 
     try {
-      const document = await createDocument(roomId, title.trim());
+      const document = await createDocument(title.trim(), roomId, shared);
       if (document) {
         toast({
           title: "Success",
           description: "Document created successfully",
         });
         setOpen(false);
-        setTitle("");
-        // Redirect to the document editor
-        router.push(`/dashboard/room/${roomId}/document/${document.id}`);
+        // Redirect to the appropriate document path
+        const path = roomId
+          ? `/dashboard/room/${roomId}/document/${document.id}`
+          : `/dashboard/documents/${document.id}`;
+        router.push(path);
       }
     } catch (error) {
       toast({
@@ -62,7 +66,16 @@ export function CreateDocument({ roomId }: CreateDocumentProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          setTitle("");
+          setShared(false);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full justify-start">
           <Plus className="mr-2 h-4 w-4" />
@@ -73,8 +86,9 @@ export function CreateDocument({ roomId }: CreateDocumentProps) {
         <DialogHeader>
           <DialogTitle>Create New Document</DialogTitle>
           <DialogDescription>
-            Create a new document in a room. Specify the room ID and document
-            title.
+            {roomId
+              ? "Create a new document in this room"
+              : "Create a new personal document"}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -91,6 +105,14 @@ export function CreateDocument({ roomId }: CreateDocumentProps) {
                 }
               }}
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="shared"
+              checked={shared}
+              onCheckedChange={(checked) => setShared(checked as boolean)}
+            />
+            <Label htmlFor="shared">Enable real-time collaboration</Label>
           </div>
         </div>
         <DialogFooter>

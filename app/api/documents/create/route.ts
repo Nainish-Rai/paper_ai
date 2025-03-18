@@ -12,34 +12,33 @@ export async function POST(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { roomId, title } = await request.json();
+    const { roomId, title, shared = false } = await request.json();
 
-    if (!roomId || !title) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    if (!title) {
+      return new NextResponse("Title is required", { status: 400 });
     }
 
-    // Verify room exists and user has access using proper relation check
-    const room = await prisma.room.findFirst({
-      where: {
-        id: roomId,
-        OR: [
-          { ownerId: session.user.id },
-          {
-            users: {
-              has: session.user.id,
+    // If roomId is provided, verify room access
+    if (roomId) {
+      const room = await prisma.room.findFirst({
+        where: {
+          id: roomId,
+          OR: [
+            { ownerId: session.user.id },
+            {
+              users: {
+                has: session.user.id,
+              },
             },
-          },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!room) {
-      return new NextResponse("Room not found or access denied", {
-        status: 403,
+          ],
+        },
       });
+
+      if (!room) {
+        return new NextResponse("Room not found or access denied", {
+          status: 403,
+        });
+      }
     }
 
     // Create the document
@@ -47,14 +46,20 @@ export async function POST(request: Request) {
       data: {
         title: title.trim(),
         content: "",
-        roomId: room.id,
         authorId: session.user.id,
+        shared,
+        ...(roomId ? { roomId } : {}),
       },
       include: {
         author: {
           select: {
             name: true,
             email: true,
+          },
+        },
+        room: {
+          select: {
+            name: true,
           },
         },
       },

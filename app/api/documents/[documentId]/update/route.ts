@@ -17,39 +17,52 @@ export async function PATCH(
 
     const { content } = await request.json();
 
-    if (content === undefined) {
-      return new NextResponse("Missing content", { status: 400 });
-    }
-
-    // Find document and verify access in one query
-    const document = await prisma.document.findFirst({
+    // Find document with relations
+    const document = await prisma.document.findUnique({
       where: {
         id: params.documentId,
-        room: {
-          OR: [
-            { ownerId: session.user.id },
-            {
-              users: {
-                has: session.user.id,
-              },
-            },
-          ],
-        },
+      },
+      include: {
+        room: true,
       },
     });
 
     if (!document) {
-      return new NextResponse("Document not found or access denied", {
-        status: 403,
-      });
+      return new NextResponse("Document not found", { status: 404 });
     }
 
-    // Update the document if access is verified
+    // Check access rights
+    const hasAccess =
+      document.authorId === session.user.id || // Author can always access
+      (document.room && // If it's a room document, check room access
+        (document.room.ownerId === session.user.id ||
+          document.room.users.includes(session.user.id)));
+
+    if (!hasAccess) {
+      return new NextResponse("Access denied", { status: 403 });
+    }
+
+    // Update document
     const updatedDocument = await prisma.document.update({
-      where: { id: params.documentId },
+      where: {
+        id: params.documentId,
+      },
       data: {
         content,
         updatedAt: new Date(),
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        room: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 

@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prismaClient";
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/prismaClient";
 
 export async function GET(
   request: Request,
   { params }: { params: { documentId: string } }
 ) {
   try {
-    // Get auth session
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -16,50 +15,46 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Fetch document with access check using proper relations
-    const document = await prisma.document.findFirst({
+    const document = await prisma.document.findUnique({
       where: {
         id: params.documentId,
-        room: {
-          OR: [
-            { ownerId: session.user.id },
-            {
-              users: {
-                has: session.user.id,
-              },
-            },
-          ],
-        },
       },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        roomId: true,
-        authorId: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
     if (!document) {
-      return new NextResponse("Document not found or access denied", {
-        status: 403,
-      });
+      return new NextResponse("Document not found", { status: 404 });
     }
 
-    // Return document data
-    return NextResponse.json({
-      id: document.id,
-      title: document.title,
-      content: document.content,
-      roomId: document.roomId,
-      authorId: document.authorId,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt,
+    // Verify user has access to the room
+    const room = await prisma.room.findFirst({
+      where: {
+        id: document.roomId,
+        OR: [
+          { ownerId: session.user.id },
+          {
+            users: {
+              has: session.user.id,
+            },
+          },
+        ],
+      },
     });
+
+    if (!room) {
+      return new NextResponse("Access denied", { status: 403 });
+    }
+
+    return NextResponse.json(document);
   } catch (error) {
-    console.error("[Document GET]", error);
+    console.error("[Document Get]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
