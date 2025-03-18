@@ -1,5 +1,6 @@
 import { RoomProvider } from "@/lib/contexts/RoomContext";
 import { Toaster } from "@/components/ui/toaster";
+import DashboardSideBar from "@/components/DashboardSideBar";
 
 export default function DashboardLayout({
   children,
@@ -8,7 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <RoomProvider roomId={null}>
-      <div>
+      <div className="flex">
         {children}
         <Toaster />
       </div>

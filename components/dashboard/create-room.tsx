@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { nanoid } from "nanoid";
 import { useAuth } from "@/lib/auth/provider";
 import { useCreateRoom } from "@/lib/hooks/useRooms";
 
 export function CreateRoom() {
   const { user } = useAuth();
+  console.log(user, "user");
   const router = useRouter();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -32,13 +32,10 @@ export function CreateRoom() {
     if (!roomName.trim() || !user?.id) return;
 
     try {
-      const roomId = nanoid();
-      await createRoomMutation.mutateAsync({
+      const room = await createRoomMutation.mutateAsync({
         name: roomName.trim(),
-        id: roomId,
-        owner: user.id,
         users: [], // Initially empty, users can be added later
-        content: "",
+        content: "", // Optional, but providing empty string as default
       });
 
       toast({
@@ -49,7 +46,7 @@ export function CreateRoom() {
       setIsOpen(false);
       setRoomName("");
       router.refresh(); // Refresh the page to update room list
-      router.push(`/dashboard/room/${roomId}`); // Navigate to new room
+      router.push(`/dashboard/room/${room.id}`); // Navigate to new room using ID from response
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create room";

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+import { NextResponse, type NextRequest } from "next/server";
+import type { AuthSession } from "@/lib/auth/types";
 
 // Add paths that should be accessible without authentication
 const publicPaths = ["/login", "/register", "/", "/favicon.ico"];
@@ -13,25 +13,38 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check for session cookie
-  const sessionCookie = getSessionCookie(request, {
-    cookieName: "session_token",
-    cookiePrefix: "paper_ai",
-    useSecureCookies: process.env.NODE_ENV === "production",
-  });
-
+  const sessionCookie = request.cookies.get("paper_ai_session_token");
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const redirectUrl = new URL("/login", request.url);
+    redirectUrl.searchParams.set("redirect", encodeURIComponent(request.url));
+    return NextResponse.redirect(redirectUrl);
   }
 
-  return NextResponse.next();
+  try {
+    // Verify session in protected API routes
+    if (path.startsWith("/api/")) {
+      // Add auth verification headers
+      const response = NextResponse.next();
+      response.headers.set("X-Auth-Token", sessionCookie.value);
+      return response;
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    const redirectUrl = new URL("/login", request.url);
+    redirectUrl.searchParams.set("redirect", encodeURIComponent(request.url));
+    return NextResponse.redirect(redirectUrl);
+  }
 }
 
 // Configure paths that should be protected
 export const config = {
   matcher: [
-    "/userdashboard/:path*",
+    "/dashboard/:path*",
     "/room/:path*",
     "/api/room/:path*",
-    "/api/user/:path*",
+    "/api/documents/:path*",
+    "/api/auth/user",
   ],
 };

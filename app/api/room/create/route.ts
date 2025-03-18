@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         name,
         owner,
         ownerId: owner, // Set the ownerId for proper relation
-        users,
+        users: [owner],
         content: content || "",
       },
     });

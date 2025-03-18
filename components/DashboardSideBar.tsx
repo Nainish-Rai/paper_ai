@@ -4,13 +4,13 @@
 import CreateRoom from "./custom/CreateRoom";
 import RoomLists from "./custom/SideBarComponents/RoomLists";
 import { BsReverseLayoutTextSidebarReverse } from "react-icons/bs";
-import { useSession } from "@/lib/providers/SessionProvider";
 import { Button } from "./ui/button";
+import { useAuth } from "@/lib/auth/provider";
 
 type Props = {};
 
 function DashboardSideBar({}: Props) {
-  const { user } = useSession();
+  const { user } = useAuth();
   return (
     <nav className=" w-64  hidden lg:block border  ">
       <div className=" w-full h-full px-4 pr-6 pb-4 flex flex-col justify-between">
@@ -29,14 +29,14 @@ function DashboardSideBar({}: Props) {
               />
             )}
             <div>
-              <h3 className="h4 text-base font-semibold">{user?.username}</h3>
+              <h3 className="h4 text-base font-semibold">{user?.name}</h3>
               <p className="text-xs opacity-95 ">Paper Workspace</p>
             </div>
           </div>
           {/* create */}
           <CreateRoom userInfo={user!} />
           {/* notes */}
-          {user && <RoomLists username={user.username} />}
+          {user && <RoomLists username={user.name!} />}
           {/*  */}
         </div>
         {/* <Logout /> */}

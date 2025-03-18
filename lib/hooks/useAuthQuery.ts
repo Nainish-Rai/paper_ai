@@ -6,9 +6,15 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+type QueryFn<TData> = (token: string) => Promise<TData>;
+type MutationFn<TVariables, TData> = (
+  variables: TVariables,
+  token: string
+) => Promise<TData>;
+
 export function useAuthQuery<TData, TError = Error>(
   queryKey: string[],
-  queryFn: (token: string) => Promise<TData>,
+  queryFn: QueryFn<TData>,
   options: Omit<
     UseQueryOptions<TData, TError, TData>,
     "queryKey" | "queryFn"
@@ -16,7 +22,7 @@ export function useAuthQuery<TData, TError = Error>(
 ) {
   const { getToken, isAuthenticated } = useAuth();
 
-  return useQuery({
+  return useQuery<TData, TError>({
     queryKey,
     queryFn: async () => {
       if (!isAuthenticated) {
@@ -32,7 +38,7 @@ export function useAuthQuery<TData, TError = Error>(
 }
 
 export function useAuthMutation<TVariables, TData, TError = Error>(
-  mutationFn: (variables: TVariables, token: string) => Promise<TData>,
+  mutationFn: MutationFn<TVariables, TData>,
   options: {
     onSuccess?: (data: TData, variables: TVariables) => void | Promise<void>;
     onError?: (error: TError, variables: TVariables) => void;
@@ -51,12 +57,14 @@ export function useAuthMutation<TVariables, TData, TError = Error>(
       const token = await getToken();
       return mutationFn(variables, token);
     },
-    onSuccess: async (data: TData, variables: TVariables) => {
+    onSuccess: async (data, variables) => {
       // Invalidate queries when mutation succeeds
       if (options.invalidateQueries) {
-        await queryClient.invalidateQueries({
-          queryKey: options.invalidateQueries,
-        });
+        await Promise.all(
+          options.invalidateQueries.map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey: [queryKey] })
+          )
+        );
       }
 
       if (options.onSuccess) {
