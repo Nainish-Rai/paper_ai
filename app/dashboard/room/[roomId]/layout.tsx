@@ -1,11 +1,12 @@
 import { RoomProvider } from "@/lib/contexts/RoomContext";
 
-export default function RoomLayout({
+export default async function RoomLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { roomId: string };
+  params: Promise<{ roomId: string }>;
 }) {
-  return <RoomProvider roomId={params.roomId}>{children}</RoomProvider>;
+  const { roomId } = await params;
+  return <RoomProvider roomId={roomId}>{children}</RoomProvider>;
 }
