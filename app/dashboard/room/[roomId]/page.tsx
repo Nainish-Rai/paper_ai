@@ -8,6 +8,8 @@ import { CreateDocument } from "@/components/dashboard/create-document";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Document } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoomMembers } from "@/components/dashboard/room-members";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function RoomPage({
   params,
@@ -19,6 +21,7 @@ export default function RoomPage({
   const [room, setRoom] = useState<{
     name: string;
     documents: Document[];
+    ownerId: string;
   } | null>(null);
   const { data: session, isPending } = authClient.useSession();
 
@@ -94,32 +97,45 @@ export default function RoomPage({
           <CardTitle>{room.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <CreateDocument roomId={roomId} />
-            <div className="grid gap-4">
-              {room.documents.map((document) => (
-                <Card
-                  key={document.id}
-                  className="cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/room/${roomId}/document/${document.id}`
-                    )
-                  }
-                >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{document.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">
-                      Last updated:{" "}
-                      {new Date(document.updatedAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <Tabs defaultValue="documents" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="members">Members</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="documents" className="space-y-4">
+              <CreateDocument roomId={roomId} />
+              <div className="grid gap-4">
+                {room.documents.map((document) => (
+                  <Card
+                    key={document.id}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/room/${roomId}/document/${document.id}`
+                      )
+                    }
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {document.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">
+                        Last updated:{" "}
+                        {new Date(document.updatedAt).toLocaleDateString()}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="members">
+              <RoomMembers roomId={roomId} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
