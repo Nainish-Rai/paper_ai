@@ -5,7 +5,7 @@ import { CollaborativeEditor } from "@/components/CollaborativeEditor";
 export default function Home() {
   return (
     <main>
-      <Room>
+      <Room roomId="tests123">
         <CollaborativeEditor />
       </Room>
     </main>

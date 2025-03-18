@@ -2,7 +2,7 @@
 
 1. Better auth for authentication
 2. All new features must have real-time sync consideration
-3. Editor implementation uses TipTap with LiveBlocks
+3. Editor implementation uses BlockNote with LiveBlocks
 4. UI follows Shadcn component patterns
 5. Protected routes use middleware auth checks
 6. Postgres/Prisma for all data persistence

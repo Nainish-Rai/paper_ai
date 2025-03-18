@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
-import { useDocumentStore } from "@/lib/stores/documentStore";
-import { TipTapEditor } from "@/components/custom/TipTapEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Room } from "@/app/Room";
+import { CollaborativeEditor } from "@/components/CollaborativeEditor";
 
 export default function DocumentPage({
   params,
@@ -15,45 +14,13 @@ export default function DocumentPage({
 }) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const { currentDocument, setCurrentDocument } = useDocumentStore();
 
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
-      return;
-    }
+  if (!session && !isPending) {
+    router.push("/login");
+    return null;
+  }
 
-    const fetchDocument = async () => {
-      try {
-        const response = await fetch(`/api/documents/${params.documentId}`);
-        if (!response.ok) {
-          router.push(`/dashboard/room/${params.roomId}`);
-          return;
-        }
-        const data = await response.json();
-        setCurrentDocument(data);
-      } catch (error) {
-        console.error("Error fetching document:", error);
-        router.push(`/dashboard/room/${params.roomId}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (session) {
-      fetchDocument();
-    }
-  }, [
-    params.documentId,
-    params.roomId,
-    session,
-    isPending,
-    router,
-    setCurrentDocument,
-  ]);
-
-  if (loading || isPending) {
+  if (isPending) {
     return (
       <div className="container mx-auto py-6">
         <Card>
@@ -65,18 +32,13 @@ export default function DocumentPage({
     );
   }
 
-  if (!currentDocument) {
-    return null;
-  }
-
   return (
     <div className="container mx-auto py-6">
       <Card>
         <CardContent className="p-6">
-          <TipTapEditor
-            documentId={params.documentId}
-            initialContent={currentDocument.content || ""}
-          />
+          <Room roomId={`${params.roomId}:${params.documentId}`}>
+            <CollaborativeEditor />
+          </Room>
         </CardContent>
       </Card>
     </div>

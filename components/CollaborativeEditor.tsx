@@ -6,21 +6,18 @@ import { BlockNoteView } from "@blocknote/mantine";
 import * as Y from "yjs";
 import { getYjsProviderForRoom } from "@liveblocks/yjs";
 import { useRoom, useSelf } from "@liveblocks/react/suspense";
-import { useCallback, useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 import { Avatars } from "@/components/Avatars";
 import styles from "./CollaborativeEditor.module.css";
-import { MoonIcon, SunIcon } from "@/icons";
-import { Button } from "@/components/Button";
+import { ReactNode } from "react";
 
-// Collaborative text editor with simple rich text, live cursors, and live avatars
 export function CollaborativeEditor() {
   const room = useRoom();
-  console.log(room, "room");
-
-  // Set up Liveblocks Yjs provider
   const provider = getYjsProviderForRoom(room);
+  const doc = provider.getYDoc();
 
-  return <BlockNote doc={provider.getYDoc()} provider={provider} />;
+  return <BlockNote doc={doc} provider={provider} />;
 }
 
 type EditorProps = {
@@ -28,55 +25,49 @@ type EditorProps = {
   provider: any;
 };
 
-function BlockNote({ doc, provider }: EditorProps) {
-  // Get user info from Liveblocks authentication endpoint
+function BlockNote({ doc, provider }: EditorProps): ReactNode {
   const userInfo = useSelf((me) => me.info);
+  const { theme } = useTheme();
 
   const editor: BlockNoteEditor = useCreateBlockNote({
     collaboration: {
       provider,
-
-      // Where to store BlockNote data in the Y.Doc:
       fragment: doc.getXmlFragment("document-store"),
-
-      // Information for this user:
       user: {
-        name: userInfo!.name as string,
-        color: userInfo!.color as string,
+        name: (userInfo?.name as string) || "Anonymous",
+        color: (userInfo?.color as string) || "#000000",
+      },
+    },
+    domAttributes: {
+      editor: {
+        class:
+          "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
       },
     },
   });
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    if (!editor) return;
 
-  const changeTheme = useCallback(() => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", newTheme);
-    setTheme(newTheme);
-  }, [theme]);
+    const handleUpdate = () => {
+      console.log("Editor content updated through LiveBlocks");
+    };
+
+    // Subscribe to content changes
+    const unsubscribe = editor.onEditorContentChange(handleUpdate);
+    return unsubscribe;
+  }, [editor]);
 
   return (
     <div className={styles.container}>
       <div className={styles.editorHeader}>
-        <Button
-          className={styles.button}
-          variant="subtle"
-          onClick={changeTheme}
-          aria-label="Switch Theme"
-        >
-          {theme === "dark" ? (
-            <SunIcon style={{ width: "18px" }} />
-          ) : (
-            <MoonIcon style={{ width: "18px" }} />
-          )}
-        </Button>
         <Avatars />
       </div>
       <div className={styles.editorPanel}>
         <BlockNoteView
           editor={editor}
           className={styles.editorContainer}
-          theme={theme}
+          theme={theme as "light" | "dark"}
         />
       </div>
     </div>
