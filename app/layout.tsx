@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/text-editor.css";
+import "@blocknote/core/fonts/inter.css";
+import "@blocknote/mantine/style.css";
+import "../styles/globals.css";
+import "../styles/text-editor.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { QueryProvider } from "@/lib/providers/QueryProvider";
 import { AuthProvider } from "@/lib/auth/provider";
+import { Providers } from "./Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,9 +30,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <AuthProvider>
-            <QueryProvider>{children}</QueryProvider>
-          </AuthProvider>
+          <Providers>
+            <AuthProvider>
+              <QueryProvider>{children}</QueryProvider>
+            </AuthProvider>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

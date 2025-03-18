@@ -1,5 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
-import { useOthers, useSelf } from "@/liveblocks.config";
+import { useOthers, useSelf } from "@liveblocks/react/suspense";
 import styles from "./Avatars.module.css";
 
 export function Avatars() {
@@ -15,7 +14,7 @@ export function Avatars() {
       })}
 
       {currentUser && (
-        <div className="relative ml-0 first:ml-0">
+        <div className="relative ml-8 first:ml-0">
           <Avatar
             picture={currentUser.info.picture}
             name={currentUser.info.name}
@@ -33,7 +32,6 @@ export function Avatar({ picture, name }: { picture: string; name: string }) {
         src={picture}
         className={styles.avatar_picture}
         data-tooltip={name}
-        alt="Avatar"
       />
     </div>
   );
