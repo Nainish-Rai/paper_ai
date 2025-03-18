@@ -18,7 +18,7 @@ export default async function Home() {
     redirect("/dashboard");
   }
   return (
-    <main className="">
+    <main className="h-full">
       <HeroSection />
       <Features />
       <CallToAction />

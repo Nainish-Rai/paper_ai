@@ -3,6 +3,16 @@ import { useAuth } from "@/lib/auth/provider";
 import type { BetterAuthResponse } from "@/lib/auth/types";
 import { v4 as uuidv4 } from "uuid";
 
+interface Document {
+  id: string;
+  name: string;
+  content: string | null;
+  createdAt: string;
+  updatedAt: string;
+  roomId: string;
+  authorId: string;
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -15,6 +25,7 @@ export interface Room {
     name: string | null;
     email: string;
   };
+  documents: Document[];
 }
 
 interface CreateRoomData {

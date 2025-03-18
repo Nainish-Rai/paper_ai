@@ -287,8 +287,15 @@ function DashboardSideBar() {
         {/* Logout */}
         <div className="px-2 mt-auto pt-4">
           <TooltipButton
-            variant={isCollapsed ? "ghost" : "destructive"}
-            icon={<LogOut className={cn("h-4 w-4", !isCollapsed && "mr-2")} />}
+            variant={isCollapsed ? "ghost" : "outline"}
+            icon={
+              <LogOut
+                className={cn(
+                  "h-4 w-4 bg-transparent ",
+                  !isCollapsed && "mr-2"
+                )}
+              />
+            }
             label="Sign out"
             onClick={handleLogout}
             disabled={isLoggingOut}

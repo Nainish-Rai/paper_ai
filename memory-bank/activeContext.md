@@ -15,6 +15,8 @@ The project is in its initial development phase with focus on:
 - Created basic room management
 - Added LiveBlocks configuration
 - Switched to TipTap editor for rich text editing
+- Added room and document deletion functionality with proper validation
+- Implemented confirmation dialogs for destructive actions
 
 ## Active Decisions
 
@@ -33,8 +35,10 @@ The project is in its initial development phase with focus on:
 
 3. Room Management
    - Room creation and joining
+   - Room and document deletion with owner validation
    - User permissions system
    - Real-time updates
+   - Protection against unauthorized deletions
 
 ## Current Considerations
 
@@ -43,11 +47,13 @@ The project is in its initial development phase with focus on:
    - Secure authentication flows
    - Protected API routes
    - Data validation
+   - Owner-only deletion permissions
 
 2. Performance
    - Real-time sync optimization
    - TipTap editor performance
    - Database query optimization
+   - Efficient cascade deletions
 
 ## Next Steps
 
@@ -69,8 +75,10 @@ The project is in its initial development phase with focus on:
    - Advanced permissions
    - User roles
    - Activity tracking
+   - Room archiving feature
 
 4. Dashboard Implementation
    - Room management UI
    - User settings
    - Activity overview
+   - Bulk operations on rooms/documents

@@ -72,7 +72,7 @@ export default function LoginCard() {
         provider,
         callbackURL: "/dashboard",
         errorCallbackURL: "/login?error=auth-failed",
-        newUserCallbackURL: "/welcome",
+        newUserCallbackURL: "/dashboard",
       });
     } catch (err) {
       setError(`Failed to login with ${provider}. Please try again.`);

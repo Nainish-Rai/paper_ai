@@ -9,13 +9,6 @@ interface GetRoomsRequestBody {
 export async function POST(request: Request) {
   console.log("GET /api/room/getRooms - Request received");
   try {
-    // // Verify auth token
-    // const authHeader = request.headers.get("Authorization");
-    // console.log("Auth header present:", !!authHeader);
-    // if (!authHeader?.startsWith("Bearer ")) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
-
     // Get request body
     const body = (await request.json()) as GetRoomsRequestBody;
     console.log("Request body:", body);
@@ -27,22 +20,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // // Verify user has access to requested userId
-    // const userIdFromHeader = request.headers.get("X-User-Id");
-    // console.log("User ID comparison:", {
-    //   fromHeader: userIdFromHeader,
-    //   fromBody: body.userId,
-    //   match: userIdFromHeader === body.userId,
-    // });
-
-    // if (userIdFromHeader !== body.userId) {
-    //   console.log("User ID mismatch - unauthorized access attempt");
-    //   return NextResponse.json(
-    //     { message: "Unauthorized access" },
-    //     { status: 403 }
-    //   );
-    // }
 
     // Find rooms where user is either owner or member
     console.log("Querying database for rooms with userId:", body.userId);
@@ -57,6 +34,7 @@ export async function POST(request: Request) {
             email: true,
           },
         },
+        documents: true, // Include documents
       },
       orderBy: {
         updatedAt: "desc",
@@ -70,6 +48,7 @@ export async function POST(request: Request) {
         name: room.name,
         ownerId: room.ownerId,
         userCount: room.users.length,
+        documentCount: room.documents.length,
       })),
     });
 
