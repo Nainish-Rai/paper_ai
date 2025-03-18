@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import "../styles/globals.css";
+// import "../styles/globals.css";
 import "../styles/text-editor.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { QueryProvider } from "@/lib/providers/QueryProvider";
