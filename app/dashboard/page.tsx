@@ -26,7 +26,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <DashboardHeader user={user} />
+      {/* <DashboardHeader user={user} /> */}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
         <div className="lg:col-span-2">

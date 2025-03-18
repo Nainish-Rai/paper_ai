@@ -13,16 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut } from "lucide-react";
+import { User as UserIcon, Settings, LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
+import { User } from "@/lib/auth/types";
 
 interface UserButtonProps {
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-    image?: string;
-  };
+  user: User;
 }
 
 export function UserButton({ user }: UserButtonProps) {
@@ -55,7 +51,7 @@ export function UserButton({ user }: UserButtonProps) {
     if (user.name) {
       return user.name
         .split(" ")
-        .map((n) => n[0])
+        .map((n: string) => n[0])
         .join("")
         .toUpperCase()
         .substring(0, 2);
@@ -86,7 +82,7 @@ export function UserButton({ user }: UserButtonProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push("/profile")}>
-            <User className="mr-2 h-4 w-4" />
+            <UserIcon className="mr-2 h-4 w-4" />
             Profile
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/settings")}>

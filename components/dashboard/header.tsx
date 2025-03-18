@@ -6,17 +6,15 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
+import { User } from "@/lib/auth/types";
+
 interface DashboardHeaderProps {
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-  };
+  user: User;
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
-    <header className="flex items-center justify-between">
+    <header className="flex items-center w-full justify-between">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
