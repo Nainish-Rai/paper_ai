@@ -16,14 +16,14 @@ interface UserWelcomeProps {
 
 export function UserWelcome({ user }: UserWelcomeProps) {
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 ">
       <CardHeader>
         <CardTitle>Welcome back{user.name ? `, ${user.name}` : ""}!</CardTitle>
         <CardDescription>
           Here&apos;s what&apos;s happening with your documents today
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="">
         <div className="stats grid gap-4 grid-cols-2 md:grid-cols-3">
           <div className="stat">
             <div className="text-muted-foreground text-sm">

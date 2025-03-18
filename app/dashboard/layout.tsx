@@ -19,7 +19,7 @@ export default function DashboardLayout({
       <div className="flex h-screen bg-background">
         <DashboardSideBar />
         <main className="flex-1 flex flex-col">
-          <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
+          <div className="h-16 border-b border-border bg-background/10 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
             <div className="px-6 h-full flex items-center">
               {user && <DashboardHeader user={user} />}
             </div>

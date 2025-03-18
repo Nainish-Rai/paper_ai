@@ -59,7 +59,7 @@ function BlockNote({ doc, provider }: EditorProps): ReactNode {
   }, [editor]);
 
   return (
-    <div className={styles.container}>
+    <div className=" ">
       <div className={styles.editorHeader}>
         <Avatars />
       </div>

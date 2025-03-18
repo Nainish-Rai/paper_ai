@@ -14,9 +14,11 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
-    <header className="flex items-center w-full justify-between">
+    <header className="flex  items-center w-full justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <Link href={"/dashboard"}>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        </Link>
         <p className="text-sm text-muted-foreground">
           Manage your documents and collaborations
         </p>

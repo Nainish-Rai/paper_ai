@@ -35,9 +35,9 @@ export default function DocumentPageClient({
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <Card>
-        <CardContent className="p-6">
+    <div className=" mx-auto pb-6">
+      <Card className=" w-full  ">
+        <CardContent className="">
           <Room roomId={`${roomId}:${documentId}`}>
             <CollaborativeEditor />
           </Room>

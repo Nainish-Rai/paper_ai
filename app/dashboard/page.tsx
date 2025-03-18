@@ -25,10 +25,10 @@ export default async function DashboardPage() {
   const { user } = session;
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 pb-6">
       {/* <DashboardHeader user={user} /> */}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-0">
         <div className="lg:col-span-2">
           <UserWelcome user={user} />
           <RecentDocuments />

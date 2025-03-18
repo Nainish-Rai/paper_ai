@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import CreateRoom from "./custom/CreateRoom";
 import { RoomsListCollapsible } from "./dashboard/rooms-list-collapsible";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   Search,
@@ -15,11 +16,40 @@ import {
   Clock,
   LogOut,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function DashboardSideBar() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  // Keyboard shortcuts
+  useHotkeys(
+    "alt+s",
+    () => {
+      document.getElementById("search-button")?.focus();
+    },
+    { enableOnFormTags: ["INPUT"] }
+  );
+
+  useHotkeys("alt+c", () => {
+    document.getElementById("create-room-button")?.click();
+  });
+
+  useHotkeys("alt+\\", () => {
+    setIsCollapsed((prev) => !prev);
+  });
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -27,29 +57,127 @@ function DashboardSideBar() {
       .split(" ")
       .map((n: string) => n[0])
       .join("")
-      .toUpperCase();
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleLogout = useCallback(async () => {
+    try {
+      setIsLoggingOut(true);
+      await signOut();
+      router.push("/login");
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }, [signOut, router, toast]);
+
+  const handleSearch = () => {
+    toast({
+      description: "Search functionality coming soon!",
+    });
+  };
+
+  // Wrap buttons with tooltips when collapsed
+  const TooltipButton = ({
+    onClick,
+    icon,
+    label,
+    shortcut,
+    id,
+    variant = "ghost",
+    disabled = false,
+  }: {
+    onClick?: () => void;
+    icon: React.ReactNode;
+    label: string;
+    shortcut?: string;
+    id?: string;
+    variant?: "ghost" | "outline" | "secondary" | "destructive";
+    disabled?: boolean;
+  }) => {
+    const content = (
+      <Button
+        id={id}
+        variant={variant}
+        className={cn(
+          "justify-start transition-all",
+          isCollapsed ? "justify-center px-2" : "",
+          variant === "destructive"
+            ? "hover:bg-destructive/90 hover:text-destructive-foreground"
+            : ""
+        )}
+        size="sm"
+        onClick={onClick}
+        disabled={disabled}
+      >
+        {icon}
+        {!isCollapsed && <span>{label}</span>}
+      </Button>
+    );
+
+    if (isCollapsed) {
+      return (
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>{content}</TooltipTrigger>
+            <TooltipContent
+              side="right"
+              align="start"
+              className="flex flex-col gap-1"
+            >
+              <span>{label}</span>
+              {shortcut && (
+                <span className="text-xs text-muted-foreground">
+                  {shortcut}
+                </span>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return content;
   };
 
   return (
     <nav
       className={cn(
-        "border-r bg-background relative group/sidebar",
-        isCollapsed ? "w-[80px]" : "w-[280px]",
-        "transition-all duration-300 ease-in-out"
+        "border-r bg-background relative group/sidebar transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-[80px]" : "w-[280px]"
       )}
+      aria-label="Dashboard sidebar"
     >
-      {/* Collapse button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "h-6 w-6 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100",
-          isCollapsed && "rotate-180"
-        )}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+      {/* Collapse button with tooltip */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-6 w-6 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 z-10",
+                isCollapsed && "rotate-180"
+              )}
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!isCollapsed}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>{isCollapsed ? "Expand" : "Collapse"} sidebar</p>
+            <p className="text-xs text-muted-foreground">Alt + \</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <div className="flex flex-col h-full px-2 py-4 gap-2">
         {/* User section */}
@@ -59,18 +187,35 @@ function DashboardSideBar() {
             isCollapsed ? "justify-center" : "justify-start"
           )}
         >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.image ?? undefined} />
-            <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
-          </Avatar>
+          {user ? (
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={user?.image ?? undefined}
+                alt={user?.name || "User"}
+              />
+              <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          )}
+
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
-              <h3 className="font-medium text-sm truncate">
-                {user?.name || "User"}
-              </h3>
-              <p className="text-xs text-muted-foreground truncate">
-                Paper Workspace
-              </p>
+              {user ? (
+                <>
+                  <h3 className="font-medium text-sm truncate">
+                    {user?.name || "User"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Paper Workspace
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-3 w-20" />
+                </>
+              )}
             </div>
           )}
         </div>
@@ -78,12 +223,17 @@ function DashboardSideBar() {
         {/* Search bar */}
         <div className={cn("px-2", isCollapsed && "hidden")}>
           <Button
+            id="search-button"
             variant="secondary"
-            className="w-full justify-start text-muted-foreground"
+            className="w-full justify-start text-muted-foreground group"
             size="sm"
+            onClick={handleSearch}
           >
-            <Search className="h-4 w-4 mr-2" />
+            <Search className="h-4 w-4 mr-2 group-hover:text-primary transition-colors" />
             Search
+            <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              Alt+S
+            </kbd>
           </Button>
         </div>
 
@@ -95,74 +245,54 @@ function DashboardSideBar() {
               isCollapsed ? "flex-col items-center" : "flex-col items-stretch"
             )}
           >
-            <Button
-              variant="ghost"
-              className={cn(
-                "justify-start",
-                isCollapsed && "justify-center px-2"
-              )}
-              size="sm"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              {!isCollapsed && "Recent"}
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "justify-start",
-                isCollapsed && "justify-center px-2"
-              )}
-              size="sm"
-            >
-              <Layout className="h-4 w-4 mr-2" />
-              {!isCollapsed && "All rooms"}
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "justify-start",
-                isCollapsed && "justify-center px-2"
-              )}
-              size="sm"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              {!isCollapsed && "Settings"}
-            </Button>
+            <TooltipButton
+              icon={<Clock className="h-4 w-4 mr-2" />}
+              label="Recent"
+              onClick={() => router.push("/dashboard/recent")}
+            />
+            <TooltipButton
+              icon={<Layout className="h-4 w-4 mr-2" />}
+              label="All rooms"
+              onClick={() => router.push("/dashboard/rooms")}
+            />
+            <TooltipButton
+              icon={<Settings className="h-4 w-4 mr-2" />}
+              label="Settings"
+              onClick={() => router.push("/dashboard/settings")}
+            />
           </div>
         </div>
 
         {/* Create Room button */}
         <div className="px-2 mt-2">
           {isCollapsed ? (
-            <Button size="icon" variant="outline" className="w-full">
-              <PlusCircle className="h-4 w-4" />
-            </Button>
+            <TooltipButton
+              id="create-room-button"
+              variant="outline"
+              icon={<PlusCircle className="h-4 w-4" />}
+              label="Create Room"
+              shortcut="Alt+C"
+              disabled={!user}
+            />
           ) : (
             user && <CreateRoom userInfo={user} />
           )}
         </div>
 
         {/* Room list */}
-        <div className="flex-1 overflow-auto mt-4">
+        <div className="flex-1 overflow-auto mt-4 scrollbar-thin">
           {user && <RoomsListCollapsible isCollapsed={isCollapsed} />}
         </div>
 
         {/* Logout */}
         <div className="px-2 mt-auto pt-4">
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-start text-muted-foreground hover:text-red-500",
-              isCollapsed && "justify-center"
-            )}
-            size="sm"
-            onClick={() => {
-              fetch("/api/auth/logout");
-            }}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {!isCollapsed && "Sign out"}
-          </Button>
+          <TooltipButton
+            variant={isCollapsed ? "ghost" : "destructive"}
+            icon={<LogOut className={cn("h-4 w-4", !isCollapsed && "mr-2")} />}
+            label="Sign out"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          />
         </div>
       </div>
     </nav>
