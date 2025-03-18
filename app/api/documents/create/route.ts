@@ -18,26 +18,28 @@ export async function POST(request: Request) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
-    // Verify room exists and user has access
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
+    // Verify room exists and user has access using proper relation check
+    const room = await prisma.room.findFirst({
+      where: {
+        id: roomId,
+        OR: [
+          { ownerId: session.user.id },
+          {
+            users: {
+              has: session.user.id,
+            },
+          },
+        ],
+      },
       select: {
         id: true,
-        ownerId: true,
-        users: true,
       },
     });
 
     if (!room) {
-      return new NextResponse("Room not found", { status: 404 });
-    }
-
-    // Check if user has access to create documents in this room
-    if (
-      room.ownerId !== session.user.id &&
-      !room.users.includes(session.user.id)
-    ) {
-      return new NextResponse("Access denied", { status: 403 });
+      return new NextResponse("Room not found or access denied", {
+        status: 403,
+      });
     }
 
     // Create the document

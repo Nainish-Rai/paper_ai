@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 
+import { NextRequest } from "next/server";
+
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { roomId: string } }
 ) {
   try {
@@ -55,20 +57,53 @@ export async function POST(
       return new NextResponse("User is already a member", { status: 400 });
     }
 
-    // Add user to room
-    const updatedRoom = await prisma.room.update({
-      where: {
-        id: params.roomId,
-      },
-      data: {
-        users: {
-          push: userToAdd.id,
+    // Add user to room and update user's rooms in a transaction
+    const [updatedRoom] = await prisma.$transaction([
+      prisma.room.update({
+        where: {
+          id: params.roomId,
         },
-      },
-      include: {
-        documents: true,
-      },
-    });
+        data: {
+          users: {
+            push: userToAdd.id,
+          },
+        },
+        include: {
+          documents: true,
+        },
+      }),
+      // Update user's rooms relation
+      prisma.user.update({
+        where: {
+          id: userToAdd.id,
+        },
+        data: {
+          rooms: {
+            connect: {
+              id: params.roomId,
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Get the authorization header from the original request
+    const authHeader = request.headers.get("authorization");
+
+    if (authHeader) {
+      // Refresh LiveBlocks session for the added user
+      const res = await fetch(`${request.nextUrl.origin}/api/liveblocks-auth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
+      });
+
+      if (!res.ok) {
+        console.error("Failed to refresh LiveBlocks session");
+      }
+    }
 
     return NextResponse.json(updatedRoom);
   } catch (error) {

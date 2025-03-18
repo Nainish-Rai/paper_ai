@@ -32,7 +32,7 @@ function RoomCard({ room, currentUserId }: RoomCardProps) {
   });
 
   return (
-    <Link href={`/room/${room.id}`} className="block group">
+    <Link href={`/dashboard/room/${room.id}`} className="block group">
       <div className="border rounded-lg p-4 h-full hover:border-primary/50 hover:shadow-sm transition-all">
         <div className="flex items-start justify-between">
           <h3 className="font-medium group-hover:text-primary transition-colors">

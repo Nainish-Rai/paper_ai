@@ -21,32 +21,30 @@ export async function PATCH(
       return new NextResponse("Missing content", { status: 400 });
     }
 
-    // Fetch the document and verify access
-    const document = await prisma.document.findUnique({
-      where: { id: params.documentId },
-      include: {
+    // Find document and verify access in one query
+    const document = await prisma.document.findFirst({
+      where: {
+        id: params.documentId,
         room: {
-          select: {
-            ownerId: true,
-            users: true,
-          },
+          OR: [
+            { ownerId: session.user.id },
+            {
+              users: {
+                has: session.user.id,
+              },
+            },
+          ],
         },
       },
     });
 
     if (!document) {
-      return new NextResponse("Document not found", { status: 404 });
+      return new NextResponse("Document not found or access denied", {
+        status: 403,
+      });
     }
 
-    // Check if user has access to edit this document
-    if (
-      document.room.ownerId !== session.user.id &&
-      !document.room.users.includes(session.user.id)
-    ) {
-      return new NextResponse("Access denied", { status: 403 });
-    }
-
-    // Update the document
+    // Update the document if access is verified
     const updatedDocument = await prisma.document.update({
       where: { id: params.documentId },
       data: {

@@ -16,34 +16,36 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Fetch document with room data
-    const document = await prisma.document.findUnique({
+    // Fetch document with access check using proper relations
+    const document = await prisma.document.findFirst({
       where: {
         id: params.documentId,
-      },
-      include: {
         room: {
-          select: {
-            id: true,
-            ownerId: true,
-            users: true,
-          },
+          OR: [
+            { ownerId: session.user.id },
+            {
+              users: {
+                has: session.user.id,
+              },
+            },
+          ],
         },
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        roomId: true,
+        authorId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     if (!document) {
-      return new NextResponse("Document not found", { status: 404 });
-    }
-
-    // Check if user has access to the room
-    const hasAccess =
-      document.room.ownerId === session.user.id ||
-      document.room.users.includes(session.user.id) ||
-      document.authorId === session.user.id;
-
-    if (!hasAccess) {
-      return new NextResponse("Access denied", { status: 403 });
+      return new NextResponse("Document not found or access denied", {
+        status: 403,
+      });
     }
 
     // Return document data

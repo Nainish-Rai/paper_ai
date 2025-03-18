@@ -17,9 +17,18 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const room = await prisma.room.findUnique({
+    // Find room and verify access in one query
+    const room = await prisma.room.findFirst({
       where: {
         id: params.roomId,
+        OR: [
+          { ownerId: session.user.id },
+          {
+            users: {
+              has: session.user.id,
+            },
+          },
+        ],
       },
       include: {
         documents: {
@@ -31,15 +40,9 @@ export async function GET(
     });
 
     if (!room) {
-      return new NextResponse("Room not found", { status: 404 });
-    }
-
-    // Check if user has access to the room
-    if (
-      room.ownerId !== session.user.id &&
-      !room.users.includes(session.user.id)
-    ) {
-      return new NextResponse("Access denied", { status: 403 });
+      return new NextResponse("Room not found or access denied", {
+        status: 403,
+      });
     }
 
     return NextResponse.json(room);

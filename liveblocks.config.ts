@@ -1,10 +1,37 @@
-import { createClient } from "@liveblocks/client";
+import {
+  createClient,
+  LiveList,
+  LiveMap,
+  LiveObject,
+} from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
+import { authClient } from "@/lib/auth/client";
 
 // Try changing the lostConnectionTimeout value to increase
 // or reduct the time it takes to reconnect
 const client = createClient({
-  authEndpoint: "/api/liveblocks-auth",
+  authEndpoint: async () => {
+    // Get session data from auth client
+    const { data: authData } = await authClient.getSession();
+
+    if (!authData?.session?.token) {
+      throw new Error("No valid session token");
+    }
+
+    // Use token in authorization header
+    const response = await fetch("/api/liveblocks-auth", {
+      headers: {
+        Authorization: `Bearer ${authData.session.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to authorize with Liveblocks");
+    }
+
+    const session = await response.json();
+    return session;
+  },
 });
 
 // Presence represents the properties that exist on every user in the Room
@@ -20,8 +47,9 @@ type Presence = {
 // LiveList, LiveMap, LiveObject instances, for which updates are
 // automatically persisted and synced to all connected clients.
 type Storage = {
-  // author: LiveObject<{ firstName: string, lastName: string }>,
-  // ...
+  editorState: LiveObject<any>;
+  documents: LiveMap<string, any>;
+  users: LiveMap<string, { name: string; color: string }>;
 };
 
 // Optionally, UserMeta represents static/readonly metadata on each user, as
