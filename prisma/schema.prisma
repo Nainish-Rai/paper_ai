@@ -21,7 +21,6 @@ model User {
   createdAt     DateTime
   updatedAt     DateTime
   documents     Document[]
-  rooms         Room[]
   accounts      Account[]
   sessions      Session[]
 
@@ -42,30 +41,15 @@ model Session {
   @@map("session")
 }
 
-model Room {
-  id        String     @id
-  name      String
-  owner     String
-  content   String?
-  createdAt DateTime   @default(now())
-  ownerId   String
-  updatedAt DateTime   @updatedAt
-  users     String[]
-  documents Document[]
-  user      User       @relation(fields: [ownerId], references: [id])
-}
-
 model Document {
   id        String   @id @default(cuid())
   title     String
   content   String?  @db.Text
-  roomId    String?
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   shared    Boolean  @default(false)
   author    User     @relation(fields: [authorId], references: [id])
-  room      Room?    @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Account {

@@ -4,18 +4,8 @@ import { useAuth } from "@/lib/auth/provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import CreateRoom from "./custom/CreateRoom";
-import { RoomsListCollapsible } from "./dashboard/rooms-list-collapsible";
 import { useRouter } from "next/navigation";
-import {
-  ChevronLeft,
-  Search,
-  Settings,
-  PlusCircle,
-  Layout,
-  Clock,
-  LogOut,
-} from "lucide-react";
+import { ChevronLeft, Search, Settings, Clock, LogOut } from "lucide-react";
 import { useState, useCallback } from "react";
 import {
   Tooltip,
@@ -42,10 +32,6 @@ function DashboardSideBar() {
     },
     { enableOnFormTags: ["INPUT"] }
   );
-
-  useHotkeys("alt+c", () => {
-    document.getElementById("create-room-button")?.click();
-  });
 
   useHotkeys("alt+\\", () => {
     setIsCollapsed((prev) => !prev);
@@ -251,37 +237,11 @@ function DashboardSideBar() {
               onClick={() => router.push("/dashboard/recent")}
             />
             <TooltipButton
-              icon={<Layout className="h-4 w-4 mr-2" />}
-              label="All rooms"
-              onClick={() => router.push("/dashboard/rooms")}
-            />
-            <TooltipButton
               icon={<Settings className="h-4 w-4 mr-2" />}
               label="Settings"
               onClick={() => router.push("/dashboard/settings")}
             />
           </div>
-        </div>
-
-        {/* Create Room button */}
-        <div className="px-2 mt-2">
-          {isCollapsed ? (
-            <TooltipButton
-              id="create-room-button"
-              variant="outline"
-              icon={<PlusCircle className="h-4 w-4" />}
-              label="Create Room"
-              shortcut="Alt+C"
-              disabled={!user}
-            />
-          ) : (
-            user && <CreateRoom userInfo={user} />
-          )}
-        </div>
-
-        {/* Room list */}
-        <div className="flex-1 overflow-auto mt-4 scrollbar-thin">
-          {user && <RoomsListCollapsible isCollapsed={isCollapsed} />}
         </div>
 
         {/* Logout */}

@@ -1,13 +1,7 @@
-"use client";
-import { Room } from "@/app/Room";
-import { CollaborativeEditor } from "@/components/CollaborativeEditor";
+import React from "react";
 
-export default function Home() {
-  return (
-    <main>
-      <Room roomId="tests123">
-        <CollaborativeEditor />
-      </Room>
-    </main>
-  );
+function page() {
+  return <div>page</div>;
 }
+
+export default page;

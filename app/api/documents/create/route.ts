@@ -12,33 +12,10 @@ export async function POST(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { roomId, title, shared = false } = await request.json();
+    const { title, shared = false } = await request.json();
 
     if (!title) {
       return new NextResponse("Title is required", { status: 400 });
-    }
-
-    // If roomId is provided, verify room access
-    if (roomId) {
-      const room = await prisma.room.findFirst({
-        where: {
-          id: roomId,
-          OR: [
-            { ownerId: session.user.id },
-            {
-              users: {
-                has: session.user.id,
-              },
-            },
-          ],
-        },
-      });
-
-      if (!room) {
-        return new NextResponse("Room not found or access denied", {
-          status: 403,
-        });
-      }
     }
 
     // Create the document
@@ -48,18 +25,12 @@ export async function POST(request: Request) {
         content: "",
         authorId: session.user.id,
         shared,
-        ...(roomId ? { roomId } : {}),
       },
       include: {
         author: {
           select: {
             name: true,
             email: true,
-          },
-        },
-        room: {
-          select: {
-            name: true,
           },
         },
       },

@@ -1,111 +1,207 @@
 "use client";
 
-import { Block, BlockNoteEditor } from "@blocknote/core";
-import { BlockNoteView, useBlockNote } from "@blocknote/react";
-import * as Y from "yjs";
-import LiveblocksProvider from "@liveblocks/yjs";
-import { useRoom, useSelf } from "@/liveblocks.config";
-import { useCallback, useEffect, useState } from "react";
-import { Avatars } from "@/components/Avatars";
-import styles from "./Editor.module.css";
-// import { MoonIcon, SunIcon } from "@/icons";
-import { Button } from "@/components/Button";
-
-// Collaborative text editor with simple rich text, live cursors, and live avatars
-export function Editor() {
-  const room = useRoom();
-  const [doc, setDoc] = useState<Y.Doc>();
-  const [provider, setProvider] = useState<any>();
-
-  // Set up Liveblocks Yjs provider
-  useEffect(() => {
-    const yDoc = new Y.Doc();
-    const yProvider = new LiveblocksProvider(room, yDoc);
-    setDoc(yDoc);
-    setProvider(yProvider);
-
-    return () => {
-      yDoc?.destroy();
-      yProvider?.destroy();
-    };
-  }, [room]);
-
-  if (!doc || !provider) {
-    return null;
-  }
-
-  return <BlockNote doc={doc} provider={provider} />;
-}
+import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
+import { useCreateBlockNote } from "@blocknote/react";
+import { BlockNoteView } from "@blocknote/mantine";
+import { useEffect, useState, useRef } from "react";
+import { useTheme } from "next-themes";
 
 type EditorProps = {
-  doc: Y.Doc;
-  provider: any;
+  documentId: string;
 };
 
-function BlockNote({ doc, provider }: EditorProps) {
-  // Get user info from Liveblocks authentication endpoint
-  const userInfo: any = useSelf((me) => me.info);
+const saveToStorage = async (documentId: string, jsonBlocks: Block[]) => {
+  localStorage.setItem(
+    `editorContent-${documentId}`,
+    JSON.stringify(jsonBlocks)
+  );
+};
 
-  const editor: BlockNoteEditor = useBlockNote({
-    collaboration: {
-      provider,
+const loadFromStorage = async (documentId: string) => {
+  const storageString = localStorage.getItem(`editorContent-${documentId}`);
+  return storageString
+    ? (JSON.parse(storageString) as PartialBlock[])
+    : undefined;
+};
 
-      // Where to store BlockNote data in the Y.Doc:
-      fragment: doc.getXmlFragment("document-store"),
-
-      // Information for this user:
-
-      user: {
-        name: userInfo.name,
-        color: userInfo.color,
-      },
+export function Editor({ documentId }: EditorProps) {
+  const { theme } = useTheme();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [initialContent, setInitialContent] = useState<any>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  // Default content structure for new documents
+  const defaultContent = [
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "",
+        },
+      ],
     },
-  });
+  ];
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [blocks, setBlocks] = useState<any>([]);
+  // Fetch initial content from both local storage and API
+  useEffect(() => {
+    const loadContent = async () => {
+      setIsLoading(true);
+      setError(null);
 
-  const changeTheme = useCallback(() => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", newTheme);
-    setTheme(newTheme);
-  }, [theme]);
+      // First try to load from local storage
+      const localContent = await loadFromStorage(documentId);
+      if (localContent) {
+        setInitialContent(localContent);
+        setIsLoading(false);
+      }
 
-  // console.log(editor.document);
+      // Then fetch from API
+      try {
+        const response = await fetch(`/api/documents/${documentId}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+        const data = await response.json();
 
-  return (
-    <div className="w-full bg-gray-100 h-full shadow-md  ">
-      {/* Navbar Editor */}
-      <div className="fixed flex top-0 right-20 mt-5 shadow-md rounded-full border bg-primary-foreground w-fit p-1 z-50">
-        {/* <Button
-          className={styles.button}
-          variant="subtle"
-          onClick={changeTheme}
-          aria-label="Switch Theme"
-        >
-          {theme === "dark" ? <>light</> : <>dark</>}
-        </Button> */}
-        <Avatars />
+        if (data.content) {
+          try {
+            const parsedContent = JSON.parse(data.content);
+            if (Array.isArray(parsedContent) && parsedContent.length > 0) {
+              const firstBlock = parsedContent[0];
+              if (firstBlock.type && firstBlock.content) {
+                setInitialContent(parsedContent);
+                // Update local storage with server content
+                await saveToStorage(documentId, parsedContent);
+              }
+            }
+          } catch (parseError) {
+            console.error("Failed to parse API content:", parseError);
+            if (!localContent) {
+              setInitialContent(defaultContent);
+            }
+          }
+        } else if (!localContent) {
+          setInitialContent(defaultContent);
+        }
+      } catch (error) {
+        console.error("Failed to fetch API content:", error);
+        if (!localContent) {
+          setError("Failed to load document content");
+          setInitialContent(defaultContent);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadContent();
+  }, [documentId]);
+
+  const editor = useCreateBlockNote(
+    !isLoading
+      ? {
+          initialContent: initialContent || defaultContent,
+          domAttributes: {
+            editor: {
+              class:
+                "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
+            },
+          },
+        }
+      : undefined
+  );
+
+  // Save content to both local storage and database
+  useEffect(() => {
+    if (!editor) return;
+
+    const saveContent = async () => {
+      if (isSaving) return;
+
+      setIsSaving(true);
+      try {
+        // Save to local storage first (faster)
+        await saveToStorage(documentId, editor.document);
+
+        // Then save to API
+        const content = JSON.stringify(editor.document);
+        const response = await fetch(`/api/documents/${documentId}/update`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to save: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error("Failed to save document:", error);
+        setError("Failed to save changes");
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    // Debounced save handler
+    const handleUpdate = () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      // Save to local storage immediately
+      saveToStorage(documentId, editor.document).catch(console.error);
+
+      // Debounce API save
+      saveTimeoutRef.current = setTimeout(saveContent, 1000);
+    };
+
+    // Subscribe to content changes
+    editor.onEditorContentChange(() => {
+      handleUpdate();
+    });
+
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [editor, documentId, isSaving]);
+
+  // Show loading state while fetching initial content
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white" />
       </div>
-      {/* Editor */}
-      <div className="w-full  shadow-xl bg-white   mx-auto mt-16">
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center text-red-500">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  // Show editor once everything is ready
+  return (
+    <div className="w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
+      <div className="w-full bg-white dark:bg-gray-800 mx-auto mt-4 relative">
+        {isSaving && (
+          <div className="absolute z-50 top-2 right-2 px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+            Saving...
+          </div>
+        )}
         <BlockNoteView
           editor={editor}
-          // onSelectionChange={() => {
-          //   const selection = editor.getSelection();
-
-          //   // Get the blocks in the current selection and store on the state. If
-          //   // the selection is empty, store the block containing the text cursor
-          //   // instead.
-          //   if (selection !== undefined) {
-          //     setBlocks(selection.blocks);
-          //   } else {
-          //     setBlocks([editor.getTextCursorPosition().block]);
-          //   }
-          //   // console.log(blocks);
-          // }}
-          className="w-full min-h-screen scrollbar-hide overflow-scroll md:p-6  pt-4 rounded-3xl"
-          theme={theme}
+          theme={theme as "light" | "dark"}
+          className="w-full min-h-screen scrollbar-hide overflow-scroll md:p-6 pt-4 rounded-3xl"
         />
       </div>
     </div>

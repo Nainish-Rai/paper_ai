@@ -10,11 +10,7 @@ interface DocumentState {
   setCurrentDocument: (document: Document | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  createDocument: (
-    title: string,
-    roomId?: string,
-    shared?: boolean
-  ) => Promise<Document | null>;
+  createDocument: (title: string, shared?: boolean) => Promise<Document | null>;
   updateDocument: (documentId: string, content: string) => Promise<void>;
 }
 
@@ -27,11 +23,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   setCurrentDocument: (document) => set({ currentDocument: document }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
-  createDocument: async (
-    title: string,
-    roomId?: string,
-    shared: boolean = false
-  ) => {
+  createDocument: async (title: string, shared: boolean = false) => {
     try {
       set({ isLoading: true, error: null });
       const response = await fetch("/api/documents/create", {
@@ -39,7 +31,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, roomId, shared }),
+        body: JSON.stringify({ title, shared }),
       });
 
       if (!response.ok) {

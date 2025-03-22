@@ -7,18 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDocument } from "@/components/dashboard/create-document";
 import { UserWelcome } from "@/components/dashboard/user-welcome";
-import { RoomsList } from "@/components/dashboard/rooms-list";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, File } from "lucide-react";
+import { File } from "lucide-react";
 import { Document } from "@prisma/client";
 
 interface DocumentWithAuthor extends Document {
   author: {
     name: string | null;
     email: string;
-  };
-  room?: {
-    name: string;
   };
 }
 
@@ -80,7 +76,6 @@ export default function DashboardPage() {
             <CreateDocument />
           </CardContent>
         </Card>
-        <RoomsList userId={session.user.id} />
       </div>
 
       {/* Main Content */}
@@ -94,11 +89,7 @@ export default function DashboardPage() {
               <Card key={doc.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {doc.roomId ? (
-                      <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <File className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    <File className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <h3 className="text-lg font-semibold">{doc.title}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -109,20 +100,12 @@ export default function DashboardPage() {
                       {doc.shared && (
                         <Badge variant="secondary">Collaborative</Badge>
                       )}
-                      {doc.roomId ? (
-                        <Badge variant="outline">Room: {doc.room?.name}</Badge>
-                      ) : (
-                        <Badge variant="outline">Personal</Badge>
-                      )}
+                      <Badge variant="outline">Personal</Badge>
                     </div>
                   </div>
                   <button
                     onClick={() =>
-                      router.push(
-                        doc.roomId
-                          ? `/dashboard/room/${doc.roomId}/document/${doc.id}`
-                          : `/dashboard/documents/${doc.id}`
-                      )
+                      router.push(`/dashboard/documents/${doc.id}`)
                     }
                     className="text-primary hover:underline"
                   >

@@ -19,11 +19,7 @@ import { useDocumentStore } from "@/lib/stores/documentStore";
 import { Plus, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
-interface CreateDocumentProps {
-  roomId?: string;
-}
-
-export function CreateDocument({ roomId }: CreateDocumentProps = {}) {
+export function CreateDocument() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [shared, setShared] = useState(false);
@@ -42,18 +38,14 @@ export function CreateDocument({ roomId }: CreateDocumentProps = {}) {
     }
 
     try {
-      const document = await createDocument(title.trim(), roomId, shared);
+      const document = await createDocument(title.trim(), shared);
       if (document) {
         toast({
           title: "Success",
           description: "Document created successfully",
         });
         setOpen(false);
-        // Redirect to the appropriate document path
-        const path = roomId
-          ? `/dashboard/room/${roomId}/document/${document.id}`
-          : `/dashboard/documents/${document.id}`;
-        router.push(path);
+        router.push(`/dashboard/documents/${document.id}`);
       }
     } catch (error) {
       toast({
@@ -85,11 +77,7 @@ export function CreateDocument({ roomId }: CreateDocumentProps = {}) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Document</DialogTitle>
-          <DialogDescription>
-            {roomId
-              ? "Create a new document in this room"
-              : "Create a new personal document"}
-          </DialogDescription>
+          <DialogDescription>Create a new personal document</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">

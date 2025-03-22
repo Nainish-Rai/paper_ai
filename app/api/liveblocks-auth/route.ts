@@ -1,8 +1,7 @@
 import { Liveblocks } from "@liveblocks/node";
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import prisma from "@/lib/prismaClient";
-import type { User, Room } from "@prisma/client";
+import type { User, Document } from "@prisma/client";
 
 // Auth error class following Better Auth pattern
 class AuthError extends Error {
@@ -54,14 +53,19 @@ export async function POST(request: NextRequest) {
           },
         },
       },
-      include: {
-        rooms: true, // Include rooms the user has access to
-      },
     });
 
     if (!user) {
       throw new AuthError("Invalid session", "UNAUTHORIZED");
     }
+
+    // Get user's documents
+    const documents = await prisma.document.findMany({
+      where: {
+        OR: [{ authorId: user.id }, { shared: true }],
+      },
+      select: { id: true },
+    });
 
     // Get a consistent color for the user based on their ID
     const colorIndex = Number(user.id) % COLORS.length;
@@ -77,11 +81,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Allow access to rooms the user is a member of
-    user.rooms.forEach((room: Room) => {
-      // Allow access to both room-level and document-level collaboration
-      const roomPattern = `${room.id}:*`;
-      session.allow(roomPattern, session.FULL_ACCESS);
+    // Allow access to documents the user has access to
+    documents.forEach((document: { id: string }) => {
+      // Allow access to document-level collaboration
+      const documentPattern = `document:${document.id}:*`;
+      session.allow(documentPattern, session.FULL_ACCESS);
     });
 
     // Authorize the user and return the result

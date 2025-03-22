@@ -17,13 +17,10 @@ export async function PATCH(
 
     const { content } = await request.json();
 
-    // Find document with relations
+    // Find document
     const document = await prisma.document.findUnique({
       where: {
         id: params.documentId,
-      },
-      include: {
-        room: true,
       },
     });
 
@@ -31,12 +28,10 @@ export async function PATCH(
       return new NextResponse("Document not found", { status: 404 });
     }
 
-    // Check access rights
+    // Check if user is the author or if document is shared
     const hasAccess =
       document.authorId === session.user.id || // Author can always access
-      (document.room && // If it's a room document, check room access
-        (document.room.ownerId === session.user.id ||
-          document.room.users.includes(session.user.id)));
+      document.shared; // Anyone can access if document is shared
 
     if (!hasAccess) {
       return new NextResponse("Access denied", { status: 403 });
@@ -56,11 +51,6 @@ export async function PATCH(
           select: {
             name: true,
             email: true,
-          },
-        },
-        room: {
-          select: {
-            name: true,
           },
         },
       },

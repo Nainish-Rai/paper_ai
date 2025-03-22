@@ -12,31 +12,10 @@ export async function GET(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Fetch all documents that are either:
-    // 1. Personal documents owned by the user (no room)
-    // 2. Room documents where user has access
+    // Fetch all documents owned by the user
     const documents = await prisma.document.findMany({
       where: {
-        OR: [
-          // Personal documents
-          {
-            authorId: session.user.id,
-            roomId: null,
-          },
-          // Room documents where user has access
-          {
-            room: {
-              OR: [
-                { ownerId: session.user.id },
-                {
-                  users: {
-                    has: session.user.id,
-                  },
-                },
-              ],
-            },
-          },
-        ],
+        authorId: session.user.id,
       },
       orderBy: [
         {
@@ -51,13 +30,6 @@ export async function GET(request: Request) {
           select: {
             name: true,
             email: true,
-          },
-        },
-        room: {
-          select: {
-            id: true,
-            name: true,
-            ownerId: true,
           },
         },
       },

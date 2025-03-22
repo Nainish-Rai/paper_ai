@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Room } from "@/app/Room";
+import { CollaborativeSpace } from "@/app/Room";
 import { CollaborativeEditor } from "@/components/CollaborativeEditor";
-import BasicEditor from "@/components/BasicEditor";
+import { Editor } from "@/components/Editor";
 import { useDocument } from "@/lib/hooks/useDocument";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
@@ -63,23 +63,11 @@ export default function DocumentPageClient({
         </div>
         <CardContent>
           {document?.shared ? (
-            <Room roomId={`personal:${documentId}`}>
+            <CollaborativeSpace documentId={documentId}>
               <CollaborativeEditor />
-            </Room>
+            </CollaborativeSpace>
           ) : (
-            <BasicEditor
-              content={document?.content}
-              onChange={(content) => {
-                // Handle content update
-                fetch(`/api/documents/${documentId}/update`, {
-                  method: "PATCH",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ content }),
-                });
-              }}
-            />
+            <Editor documentId={documentId} />
           )}
         </CardContent>
       </Card>

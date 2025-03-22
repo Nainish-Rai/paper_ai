@@ -21,7 +21,6 @@ export async function DELETE(
 
     const document = await prisma.document.findUnique({
       where: { id: params.documentId },
-      include: { room: true },
     });
 
     if (!document) {
@@ -31,15 +30,12 @@ export async function DELETE(
       );
     }
 
-    // Only room owner or document author can delete the document
-    if (
-      document.room.ownerId !== session.user.id &&
-      document.authorId !== session.user.id
-    ) {
+    // Only document author can delete the document
+    if (document.authorId !== session.user.id) {
       return NextResponse.json(
         {
           message:
-            "Unauthorized - Only room owner or document author can delete this document",
+            "Unauthorized - Only document author can delete this document",
         },
         { status: 403 }
       );
