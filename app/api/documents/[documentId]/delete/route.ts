@@ -5,9 +5,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const id = (await params).id;
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -20,7 +22,7 @@ export async function DELETE(
     }
 
     const document = await prisma.document.findUnique({
-      where: { id: params.documentId },
+      where: { id },
     });
 
     if (!document) {
@@ -42,7 +44,7 @@ export async function DELETE(
     }
 
     await prisma.document.delete({
-      where: { id: params.documentId },
+      where: { id },
     });
 
     return NextResponse.json(

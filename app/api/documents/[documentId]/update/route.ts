@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 
 export async function PATCH(
-  request: Request,
-  { params }: { params: { documentId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -12,7 +12,10 @@ export async function PATCH(
     });
 
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json(
+        { message: "Unauthorized - Please log in" },
+        { status: 401 }
+      );
     }
 
     const { content } = await request.json();
@@ -20,7 +23,7 @@ export async function PATCH(
     // Find document
     const document = await prisma.document.findUnique({
       where: {
-        id: params.documentId,
+        id: (await params).id,
       },
     });
 
@@ -40,7 +43,7 @@ export async function PATCH(
     // Update document
     const updatedDocument = await prisma.document.update({
       where: {
-        id: params.documentId,
+        id: (await params).id,
       },
       data: {
         content,
@@ -59,6 +62,12 @@ export async function PATCH(
     return NextResponse.json(updatedDocument);
   } catch (error) {
     console.error("[Document Update]", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      {
+        message: "Failed to update document",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

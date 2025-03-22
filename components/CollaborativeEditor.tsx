@@ -6,7 +6,6 @@ import { BlockNoteView } from "@blocknote/mantine";
 import * as Y from "yjs";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { Avatars } from "@/components/Avatars";
 import styles from "./CollaborativeEditor.module.css";
 import { ReactNode } from "react";
 import YPartyKitProvider from "y-partykit/provider";

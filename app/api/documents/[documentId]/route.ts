@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { documentId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -12,12 +12,15 @@ export async function GET(
     });
 
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json(
+        { message: "Unauthorized - Please log in" },
+        { status: 401 }
+      );
     }
 
     const document = await prisma.document.findUnique({
       where: {
-        id: params.documentId,
+        id: (await params).id,
       },
       include: {
         author: {
@@ -30,7 +33,10 @@ export async function GET(
     });
 
     if (!document) {
-      return new NextResponse("Document not found", { status: 404 });
+      return NextResponse.json(
+        { message: "Document not found" },
+        { status: 404 }
+      );
     }
 
     // Check if user has access to the document
@@ -39,12 +45,24 @@ export async function GET(
       document.shared; // Anyone can access if document is shared
 
     if (!hasAccess) {
-      return new NextResponse("Access denied", { status: 403 });
+      return NextResponse.json(
+        {
+          message:
+            "Access denied - You don't have permission to view this document",
+        },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json(document);
   } catch (error) {
     console.error("[Document Get]", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      {
+        message: "Failed to retrieve document",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
