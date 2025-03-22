@@ -11,6 +11,7 @@ import styles from "./CollaborativeEditor.module.css";
 import { ReactNode } from "react";
 import YPartyKitProvider from "y-partykit/provider";
 import { useAuth } from "@/lib/auth/provider";
+import { ExportButton } from "@/components/ui/export-button";
 
 export function CollaborativeEditor({ documentId }: { documentId: string }) {
   // Create a new Yjs document
@@ -200,7 +201,11 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
 
   return (
     <div className=" ">
-      <div className={styles.editorHeader}>{/* <Avatars /> */}</div>
+      <div className={styles.editorHeader}>
+        <div className="flex items-center justify-end p-2">
+          <ExportButton editor={editor} documentId={documentId} />
+        </div>
+      </div>
       <div className={styles.editorPanel}>
         <BlockNoteView
           editor={editor}
