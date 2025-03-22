@@ -66,8 +66,21 @@ export const ExportButton: FC<ExportButtonProps> = ({ editor, documentId }) => {
 
   const handlePdfExport = async () => {
     try {
-      // Create the PDF exporter
-      const exporter = new PDFExporter(editor.schema, pdfDefaultSchemaMappings);
+      // Type assertion for the PDF export process
+      type PDFExporterType = {
+        new (schema: any, mappings: any): {
+          toReactPDFDocument: (doc: any) => Promise<any>;
+        };
+      };
+
+      // Cast PDFExporter to a more flexible type
+      const TypeSafePDFExporter = PDFExporter as PDFExporterType;
+
+      // Create the PDF exporter with type assertions
+      const exporter = new TypeSafePDFExporter(
+        editor.schema,
+        pdfDefaultSchemaMappings
+      );
 
       // Convert the blocks to a react-pdf document
       const pdfDocument = await exporter.toReactPDFDocument(editor.document);

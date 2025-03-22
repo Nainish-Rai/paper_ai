@@ -1,6 +1,6 @@
 "use client";
 
-import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
+// import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useEffect, useState, useRef } from "react";
@@ -8,20 +8,6 @@ import { useTheme } from "next-themes";
 
 type EditorProps = {
   documentId: string;
-};
-
-const saveToStorage = async (documentId: string, jsonBlocks: Block[]) => {
-  localStorage.setItem(
-    `editorContent-${documentId}`,
-    JSON.stringify(jsonBlocks)
-  );
-};
-
-const loadFromStorage = async (documentId: string) => {
-  const storageString = localStorage.getItem(`editorContent-${documentId}`);
-  return storageString
-    ? (JSON.parse(storageString) as PartialBlock[])
-    : undefined;
 };
 
 export function Editor({ documentId }: EditorProps) {
@@ -44,20 +30,12 @@ export function Editor({ documentId }: EditorProps) {
     },
   ];
 
-  // Fetch initial content from both local storage and API
+  // Fetch initial content from API
   useEffect(() => {
     const loadContent = async () => {
       setIsLoading(true);
       setError(null);
 
-      // First try to load from local storage
-      const localContent = await loadFromStorage(documentId);
-      if (localContent) {
-        setInitialContent(localContent);
-        setIsLoading(false);
-      }
-
-      // Then fetch from API
       try {
         const response = await fetch(`/api/documents/${documentId}`);
         if (!response.ok) {
@@ -72,25 +50,23 @@ export function Editor({ documentId }: EditorProps) {
               const firstBlock = parsedContent[0];
               if (firstBlock.type && firstBlock.content) {
                 setInitialContent(parsedContent);
-                // Update local storage with server content
-                await saveToStorage(documentId, parsedContent);
+              } else {
+                setInitialContent(defaultContent);
               }
+            } else {
+              setInitialContent(defaultContent);
             }
           } catch (parseError) {
             console.error("Failed to parse API content:", parseError);
-            if (!localContent) {
-              setInitialContent(defaultContent);
-            }
+            setInitialContent(defaultContent);
           }
-        } else if (!localContent) {
+        } else {
           setInitialContent(defaultContent);
         }
       } catch (error) {
         console.error("Failed to fetch API content:", error);
-        if (!localContent) {
-          setError("Failed to load document content");
-          setInitialContent(defaultContent);
-        }
+        setError("Failed to load document content");
+        setInitialContent(defaultContent);
       } finally {
         setIsLoading(false);
       }
@@ -112,19 +88,14 @@ export function Editor({ documentId }: EditorProps) {
       : undefined
   );
 
-  // Save content to both local storage and database
+  const saveIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Save content to database
   useEffect(() => {
     if (!editor) return;
 
     const saveContent = async () => {
-      if (isSaving) return;
-
-      setIsSaving(true);
       try {
-        // Save to local storage first (faster)
-        await saveToStorage(documentId, editor.document);
-
-        // Then save to API
         const content = JSON.stringify(editor.document);
         const response = await fetch(`/api/documents/${documentId}/update`, {
           method: "PATCH",
@@ -137,10 +108,14 @@ export function Editor({ documentId }: EditorProps) {
         if (!response.ok) {
           throw new Error(`Failed to save: ${response.statusText}`);
         }
+
+        // Clear any previous errors on successful save
+        if (error) setError(null);
       } catch (error) {
         console.error("Failed to save document:", error);
         setError("Failed to save changes");
       } finally {
+        // Ensure saving state is cleared
         setIsSaving(false);
       }
     };
@@ -151,11 +126,11 @@ export function Editor({ documentId }: EditorProps) {
         clearTimeout(saveTimeoutRef.current);
       }
 
-      // Save to local storage immediately
-      saveToStorage(documentId, editor.document).catch(console.error);
+      // Set saving state
+      setIsSaving(true);
 
-      // Debounce API save
-      saveTimeoutRef.current = setTimeout(saveContent, 1000);
+      // Use a longer debounce time for stability
+      saveTimeoutRef.current = setTimeout(saveContent, 2000);
     };
 
     // Subscribe to content changes
@@ -163,13 +138,19 @@ export function Editor({ documentId }: EditorProps) {
       handleUpdate();
     });
 
+    // Start periodic saves
+    saveIntervalRef.current = setInterval(saveContent, 10000);
+
     // Cleanup
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
+      if (saveIntervalRef.current) {
+        clearInterval(saveIntervalRef.current);
+      }
     };
-  }, [editor, documentId, isSaving]);
+  }, [editor, documentId, isSaving, error]); // Added error as dependency since we use it in saveContent
 
   // Show loading state while fetching initial content
   if (isLoading) {
