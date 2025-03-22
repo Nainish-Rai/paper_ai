@@ -10,6 +10,7 @@ import { Avatars } from "@/components/Avatars";
 import styles from "./CollaborativeEditor.module.css";
 import { ReactNode } from "react";
 import YPartyKitProvider from "y-partykit/provider";
+import { useAuth } from "@/lib/auth/provider";
 
 export function CollaborativeEditor({ documentId }: { documentId: string }) {
   // Create a new Yjs document
@@ -85,6 +86,39 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
     loadContent();
   }, [documentId]);
 
+  const { user } = useAuth();
+
+  // Dummy names for when user is not logged in
+  const dummyNames = [
+    "Curious Panda",
+    "Happy Dolphin",
+    "Clever Fox",
+    "Wise Owl",
+    "Friendly Giraffe",
+    "Brave Lion",
+    "Creative Koala",
+    "Calm Turtle",
+    "Swift Eagle",
+  ];
+
+  // Pastel color palette for when user is not logged in
+  const pastelColors = [
+    "#FFD6E0",
+    "#FFEFDA",
+    "#D1F0C1",
+    "#C1E9F0",
+    "#D5C1F0",
+    "#F0C1DD",
+    "#C1F0CE",
+    "#F0DFC1",
+    "#C1C7F0",
+  ];
+
+  // Get random name and color from arrays
+  const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
+  const randomColor =
+    pastelColors[Math.floor(Math.random() * pastelColors.length)];
+
   // Only create the editor once initial content is loaded
   const editor = useCreateBlockNote({
     // initialContent: initialContent || defaultContent,
@@ -92,8 +126,10 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
       provider,
       fragment: doc.getXmlFragment("document-store"),
       user: {
-        name: "Anonymous", // This can be updated with actual user info
-        color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color
+        name: user?.name || randomName, // Use user name if logged in, else use dummy name
+        color: user
+          ? "#" + Math.floor(Math.random() * 16777215).toString(16)
+          : randomColor, // Use pastel color if not logged in
       },
     },
     domAttributes: {
