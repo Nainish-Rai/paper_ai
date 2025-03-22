@@ -4,7 +4,7 @@ import prisma from "@/lib/prismaClient";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -23,7 +23,7 @@ export async function PATCH(
     // Find document
     const document = await prisma.document.findUnique({
       where: {
-        id: (await params).id,
+        id: (await params).documentId,
       },
     });
 
@@ -43,7 +43,7 @@ export async function PATCH(
     // Update document
     const updatedDocument = await prisma.document.update({
       where: {
-        id: (await params).id,
+        id: (await params).documentId,
       },
       data: {
         content,

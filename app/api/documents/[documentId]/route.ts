@@ -4,7 +4,7 @@ import prisma from "@/lib/prismaClient";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { documentId: string } }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -18,9 +18,16 @@ export async function GET(
       );
     }
 
+    if (!params.documentId) {
+      return NextResponse.json(
+        { message: "Document ID is required" },
+        { status: 400 }
+      );
+    }
+
     const document = await prisma.document.findUnique({
       where: {
-        id: (await params).id,
+        id: params.documentId,
       },
       include: {
         author: {
