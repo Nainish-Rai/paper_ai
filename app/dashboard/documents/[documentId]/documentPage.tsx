@@ -64,7 +64,10 @@ export default function DocumentPageClient({
           {document?.shared ? (
             <CollaborativeEditor documentId={documentId} />
           ) : (
-            <Editor documentId={documentId} />
+            <Editor
+              documentId={documentId}
+              initialContent={document?.content}
+            />
           )}
         </CardContent>
       </Card>

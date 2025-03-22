@@ -1,6 +1,5 @@
 "use client";
 
-// import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useEffect, useState, useRef } from "react";
@@ -8,15 +7,18 @@ import { useTheme } from "next-themes";
 
 type EditorProps = {
   documentId: string;
+  initialContent?: string;
 };
 
-export function Editor({ documentId }: EditorProps) {
+export function Editor({
+  documentId,
+  initialContent: propInitialContent,
+}: EditorProps) {
   const { theme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [initialContent, setInitialContent] = useState<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
   // Default content structure for new documents
   const defaultContent = [
     {
@@ -30,63 +32,33 @@ export function Editor({ documentId }: EditorProps) {
     },
   ];
 
-  // Fetch initial content from API
-  useEffect(() => {
-    const loadContent = async () => {
-      setIsLoading(true);
-      setError(null);
-
+  // Parse and validate initial content from props
+  const [editorContent] = useState(() => {
+    if (propInitialContent) {
       try {
-        const response = await fetch(`/api/documents/${documentId}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`);
-        }
-        const data = await response.json();
-
-        if (data.content) {
-          try {
-            const parsedContent = JSON.parse(data.content);
-            if (Array.isArray(parsedContent) && parsedContent.length > 0) {
-              const firstBlock = parsedContent[0];
-              if (firstBlock.type && firstBlock.content) {
-                setInitialContent(parsedContent);
-              } else {
-                setInitialContent(defaultContent);
-              }
-            } else {
-              setInitialContent(defaultContent);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse API content:", parseError);
-            setInitialContent(defaultContent);
+        const parsedContent = JSON.parse(propInitialContent);
+        if (Array.isArray(parsedContent) && parsedContent.length > 0) {
+          const firstBlock = parsedContent[0];
+          if (firstBlock.type && firstBlock.content) {
+            return parsedContent;
           }
-        } else {
-          setInitialContent(defaultContent);
         }
-      } catch (error) {
-        console.error("Failed to fetch API content:", error);
-        setError("Failed to load document content");
-        setInitialContent(defaultContent);
-      } finally {
-        setIsLoading(false);
+      } catch (parseError) {
+        console.error("Failed to parse initial content:", parseError);
       }
-    };
-    loadContent();
-  }, [documentId]);
+    }
+    return defaultContent;
+  });
 
-  const editor = useCreateBlockNote(
-    !isLoading
-      ? {
-          initialContent: initialContent || defaultContent,
-          domAttributes: {
-            editor: {
-              class:
-                "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
-            },
-          },
-        }
-      : undefined
-  );
+  const editor = useCreateBlockNote({
+    initialContent: editorContent,
+    domAttributes: {
+      editor: {
+        class:
+          "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
+      },
+    },
+  });
 
   const saveIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -150,16 +122,7 @@ export function Editor({ documentId }: EditorProps) {
         clearInterval(saveIntervalRef.current);
       }
     };
-  }, [editor, documentId, isSaving, error]); // Added error as dependency since we use it in saveContent
-
-  // Show loading state while fetching initial content
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white" />
-      </div>
-    );
-  }
+  }, [editor, documentId, error]);
 
   // Show error state
   if (error) {
@@ -170,7 +133,7 @@ export function Editor({ documentId }: EditorProps) {
     );
   }
 
-  // Show editor once everything is ready
+  // Show editor
   return (
     <div className="w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
       <div className="w-full bg-white dark:bg-gray-800 mx-auto mt-4 relative">
