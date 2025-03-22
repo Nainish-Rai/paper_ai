@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CollaborativeSpace } from "@/app/Room";
 import { CollaborativeEditor } from "@/components/CollaborativeEditor";
 import { Editor } from "@/components/Editor";
 import { useDocument } from "@/lib/hooks/useDocument";
@@ -63,9 +62,7 @@ export default function DocumentPageClient({
         </div>
         <CardContent>
           {document?.shared ? (
-            <CollaborativeSpace documentId={documentId}>
-              <CollaborativeEditor />
-            </CollaborativeSpace>
+            <CollaborativeEditor documentId={documentId} />
           ) : (
             <Editor documentId={documentId} />
           )}

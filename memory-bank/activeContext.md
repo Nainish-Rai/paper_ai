@@ -5,18 +5,17 @@
 The project is in its initial development phase with focus on:
 
 1. Authentication system implementation
-2. Basic room creation functionality
-3. TipTap editor integration with LiveBlocks
+2. Document management and sharing
+3. BlockNote editor integration with PartyKit
 
 ## Recent Changes
 
 - Set up Prisma with Postgres
 - Implemented email-based authentication
-- Created basic room management
-- Added LiveBlocks configuration
-- Switched to TipTap editor for rich text editing
-- Added room and document deletion functionality with proper validation
-- Implemented confirmation dialogs for destructive actions
+- Migrated from LiveBlocks to PartyKit for real-time collaboration
+- Implemented BlockNote editor with real-time sync
+- Added document sharing functionality
+- Added confirmation dialogs for destructive actions
 
 ## Active Decisions
 
@@ -28,14 +27,14 @@ The project is in its initial development phase with focus on:
 
 2. Editor Implementation
 
-   - TipTap for rich text editing
-   - LiveBlocks integration for real-time sync
+   - BlockNote for rich text editing
+   - PartyKit integration for real-time sync
    - Collaborative editing features
-   - Extensible plugin system
+   - Theme support (light/dark)
 
-3. Room Management
-   - Room creation and joining
-   - Room and document deletion with owner validation
+3. Document Management
+   - Document creation and sharing
+   - Document deletion with owner validation
    - User permissions system
    - Real-time updates
    - Protection against unauthorized deletions
@@ -51,9 +50,9 @@ The project is in its initial development phase with focus on:
 
 2. Performance
    - Real-time sync optimization
-   - TipTap editor performance
+   - BlockNote editor performance
    - Database query optimization
-   - Efficient cascade deletions
+   - Efficient document state management
 
 ## Next Steps
 
@@ -65,20 +64,20 @@ The project is in its initial development phase with focus on:
 
 2. Enhance Editor Features
 
-   - TipTap extension configuration
-   - Rich text collaboration features
+   - BlockNote extension configuration
+   - Additional collaboration features
    - AI integration with editor
    - Custom menu and toolbar
 
-3. Room System
+3. Document System
 
    - Advanced permissions
    - User roles
    - Activity tracking
-   - Room archiving feature
+   - Document versioning
 
 4. Dashboard Implementation
-   - Room management UI
+   - Document management UI
    - User settings
    - Activity overview
-   - Bulk operations on rooms/documents
+   - Bulk operations on documents
