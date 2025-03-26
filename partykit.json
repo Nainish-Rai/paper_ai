@@ -1,0 +1,7 @@
+{
+  "name": "paper-ai",
+  "main": "party/presence.ts",
+  "parties": {
+    "document": "party/presence.ts"
+  }
+}

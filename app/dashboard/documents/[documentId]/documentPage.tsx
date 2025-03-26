@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useShareDocument } from "@/lib/hooks/useShareDocument";
 import { useState } from "react";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
+import { CollaboratorAvatars } from "@/components/dashboard/collaborator-avatars";
 
 export default function DocumentPageClient({
   documentId,
@@ -47,6 +48,14 @@ export default function DocumentPageClient({
 
   return (
     <div className="mx-auto pb-6">
+      <div className="mb-4 flex items-center justify-between px-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">
+            {document?.title || "Untitled"}
+          </h1>
+          <CollaboratorAvatars documentId={documentId} />
+        </div>
+      </div>
       <Card className="w-full">
         <CardContent>
           <CollaborativeEditor documentId={documentId} />

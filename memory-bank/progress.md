@@ -23,6 +23,8 @@
 ✅ Real-time connection
 ✅ Presence indicators
 ✅ PartyKit collaboration
+✅ Live collaborator avatars
+✅ User presence management
 
 ### UI Components
 
@@ -49,9 +51,11 @@
 ### Editor
 
 🔄 Rich text features
-🔄 Collaboration tools
+🔄 Multiple cursor support
 🔄 AI integration
-🔄 Real-time sync improvements
+🔄 Editing position indicators
+🔄 Conflict resolution improvements
+🔄 Real-time cursor presence
 
 ## Pending Features
 

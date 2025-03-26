@@ -2,6 +2,13 @@
 
 ## Current Focus
 
+- Real-time collaboration features using PartyKit
+  - Document presence with live collaborator avatars
+  - User join/leave handling
+  - Presence synchronization across instances
+  - Visual indicators for current user
+
+=======
 The project is in its initial development phase with focus on:
 
 1. Better Auth integration and authentication system

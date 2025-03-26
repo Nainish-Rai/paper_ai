@@ -38,8 +38,17 @@ flowchart TD
 ### Real-time Collaboration
 
 - PartyKit for real-time sync
-- Room-based collaboration model
-- Presence awareness system
+- Room-based collaboration model with document-specific rooms
+- Presence awareness system:
+  - Live collaborator avatars in document header
+  - Static store pattern for cross-instance state
+  - Automatic user join/leave handling
+  - Visual indicators for current user (green dot)
+  - Fallback avatars and tooltips
+- Connection state management:
+  - Automatic cleanup on disconnect
+  - User session tracking
+  - Real-time presence broadcasts
 - Conflict resolution handling
 
 ### Editor Implementation
