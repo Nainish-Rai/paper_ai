@@ -9,12 +9,12 @@ flowchart TD
     Client[Next.js Client]
     Server[Next.js Server]
     DB[(Prisma/Postgres)]
-    LiveBlocks[LiveBlocks Service]
+    PartyKit[PartyKit Service]
     AI[AI Service]
 
     Client <--> Server
     Server <--> DB
-    Client <--> LiveBlocks
+    Client <--> PartyKit
     Server <--> AI
 ```
 
@@ -22,30 +22,38 @@ flowchart TD
 
 ### Authentication
 
+- Better Auth library integration
 - JWT-based authentication
 - Server-side session management
 - Protected API routes
 - Middleware-based route protection
 
+### Data Management
+
+- React Query for server state
+- Cache invalidation patterns
+- Optimistic updates
+- Real-time data synchronization
+
 ### Real-time Collaboration
 
-- LiveBlocks for real-time sync
+- PartyKit for real-time sync
 - Room-based collaboration model
 - Presence awareness system
 - Conflict resolution handling
 
 ### Editor Implementation
 
-- TipTap for rich text editing
-- LiveBlocks integration for real-time sync
+- BlockNote for rich text editing
+- PartyKit integration for real-time sync
 - Collaborative editing features
 - Extensible command system
 
 ### State Management
 
 - Zustand for client-state
-- Server-side state with Prisma
-- Real-time state sync with LiveBlocks
+- React Query for server-state
+- Real-time state sync with PartyKit
 - Optimistic updates for better UX
 
 ### Component Architecture
@@ -60,16 +68,22 @@ flowchart TD
 1. User Authentication
 
    ```
-   Client -> API -> Database
+   Client -> Better Auth -> API -> Database
    ```
 
 2. Room Collaboration
 
    ```
-   Client <-> LiveBlocks <-> Other Clients
+   Client <-> PartyKit <-> Other Clients
    ```
 
-3. AI Integration
+3. Data Fetching
+
+   ```
+   Client -> React Query -> API -> Database
+   ```
+
+4. AI Integration
    ```
    Client -> API -> AI Service -> Client
    ```
@@ -78,8 +92,10 @@ flowchart TD
 
 1. Next.js App Router for routing
 2. Prisma with Postgres for data layer
-3. LiveBlocks for real-time features
-4. TipTap with LiveBlocks for editor
-5. Tailwind CSS for styling
-6. TypeScript for type safety
-7. Shadcn UI for component base
+3. PartyKit for real-time features
+4. BlockNote with PartyKit for editor
+5. React Query for data fetching
+6. Better Auth for authentication
+7. Tailwind CSS for styling
+8. TypeScript for type safety
+9. Shadcn UI for component base

@@ -4,28 +4,31 @@
 
 ### Authentication
 
-✅ Basic auth setup
+✅ Better Auth integration
 ✅ Email authentication
 ✅ Protected routes
 ✅ Session management
 
-### Room System
+### Document System
 
-✅ Basic room creation
-✅ LiveBlocks integration
-✅ Room listing
+✅ Basic document creation
+✅ PartyKit integration
+✅ Document sharing
+✅ React Query setup
+✅ Server state management
 
 ### Editor
 
-✅ Basic editor setup
+✅ BlockNote editor setup
 ✅ Real-time connection
 ✅ Presence indicators
+✅ PartyKit collaboration
 
 ### UI Components
 
 ✅ Login/Register forms
 ✅ Dashboard layout
-✅ Basic room UI
+✅ Document management UI
 ✅ Shadcn UI integration
 
 ## In Progress
@@ -34,19 +37,21 @@
 
 🔄 User profile management
 🔄 Advanced session handling
-🔄 Password reset functionality
+🔄 Better Auth features configuration
 
-### Room System
+### Document System
 
 🔄 Advanced permissions
 🔄 User roles
 🔄 Activity tracking
+🔄 React Query optimization
 
 ### Editor
 
 🔄 Rich text features
 🔄 Collaboration tools
 🔄 AI integration
+🔄 Real-time sync improvements
 
 ## Pending Features
 
@@ -56,17 +61,19 @@
 ⏳ Two-factor authentication
 ⏳ Account deletion
 
-### Room System
+### Document System
 
-⏳ Room templates
+⏳ Document templates
 ⏳ Access control
-⏳ Room analytics
+⏳ Document analytics
+⏳ Versioning system
 
 ### Editor
 
 ⏳ Advanced formatting
 ⏳ File attachments
 ⏳ Version history
+⏳ Custom extensions
 
 ### Dashboard
 
@@ -76,7 +83,8 @@
 
 ## Known Issues
 
-1. Real-time sync occasional delays
+1. Real-time sync optimization needed with PartyKit
 2. Editor performance with large documents
-3. Room creation validation needed
+3. Document creation validation needed
 4. Profile update functionality missing
+5. React Query cache invalidation patterns need refinement

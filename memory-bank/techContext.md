@@ -9,17 +9,20 @@
 - Tailwind CSS
 - Shadcn UI Components
 - Zustand (State Management)
-- TipTap Editor
+- BlockNote Editor
+- React Query (Server State)
+- PartyKit (Real-time)
 
 ### Backend
 
 - Next.js API Routes
 - Prisma ORM
 - Postgres (Database)
-- LiveBlocks (Real-time)
+- PartyKit (Real-time)
 
 ### Authentication
 
+- Better Auth library
 - Email-based authentication
 - JWT tokens
 - Server-side sessions
@@ -42,10 +45,12 @@
   "typescript": "5.x",
   "tailwindcss": "3.x",
   "prisma": "5.x",
-  "@liveblocks/react": "latest",
-  "@tiptap/react": "latest",
-  "@tiptap/pm": "latest",
-  "@tiptap/starter-kit": "latest"
+  "@tanstack/react-query": "latest",
+  "@partykit/sdk": "latest",
+  "@partykit/client": "latest",
+  "@blocknote/core": "latest",
+  "@blocknote/react": "latest",
+  "better-auth": "latest"
 }
 ```
 
@@ -77,7 +82,8 @@
 
    - DATABASE_URL
    - NEXTAUTH_SECRET
-   - LIVEBLOCKS_SECRET_KEY
+   - PARTYKIT_SECRET_KEY
+   - BETTER_AUTH_SECRET
    - AI_API_KEY
 
 3. Database
