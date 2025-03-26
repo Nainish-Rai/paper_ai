@@ -23,7 +23,7 @@ export default function DashboardLayout({
     <div className="flex h-screen ">
       <DashboardSideBar />
       <main className="flex-1 flex flex-col">
-        <div className="h-16 border-b border-border  sticky top-0 z-50 hidden">
+        <div className="h-16 border-b border-border  sticky top-0 z-50 ">
           <div className="px-6 h-full flex items-center">
             {user && <DashboardHeader user={user} documentId={documentId} />}
           </div>
