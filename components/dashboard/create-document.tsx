@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,6 @@ import { Label } from "@/components/ui/label";
 export function CreateDocument() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [shared, setShared] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { createDocument, isLoading } = useDocumentStore();
@@ -38,7 +36,7 @@ export function CreateDocument() {
     }
 
     try {
-      const document = await createDocument(title.trim(), shared);
+      const document = await createDocument(title.trim(), false);
       if (document) {
         toast({
           title: "Success",
@@ -64,7 +62,6 @@ export function CreateDocument() {
         setOpen(isOpen);
         if (!isOpen) {
           setTitle("");
-          setShared(false);
         }
       }}
     >
@@ -77,7 +74,10 @@ export function CreateDocument() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Document</DialogTitle>
-          <DialogDescription>Create a new personal document</DialogDescription>
+          <DialogDescription>
+            Create a new document with real-time collaboration enabled. You can
+            share it with others once created.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -93,14 +93,6 @@ export function CreateDocument() {
                 }
               }}
             />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="shared"
-              checked={shared}
-              onCheckedChange={(checked) => setShared(checked as boolean)}
-            />
-            <Label htmlFor="shared">Enable real-time collaboration</Label>
           </div>
         </div>
         <DialogFooter>

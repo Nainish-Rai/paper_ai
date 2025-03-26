@@ -5,7 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Search, Settings, Clock, LogOut } from "lucide-react";
+import {
+  ChevronLeft,
+  Search,
+  Settings,
+  Clock,
+  LogOut,
+  HomeIcon,
+} from "lucide-react";
 import { useState, useCallback } from "react";
 import {
   Tooltip,
@@ -232,9 +239,14 @@ function DashboardSideBar() {
             )}
           >
             <TooltipButton
+              icon={<HomeIcon className="h-4 w-4 mr-2" />}
+              label="Home"
+              onClick={() => router.push("/dashboard/")}
+            />
+            <TooltipButton
               icon={<Clock className="h-4 w-4 mr-2" />}
               label="Recent"
-              onClick={() => router.push("/dashboard/recent")}
+              onClick={() => router.push("/dashboard/")}
             />
             <TooltipButton
               icon={<Settings className="h-4 w-4 mr-2" />}

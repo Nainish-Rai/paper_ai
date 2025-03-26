@@ -11,6 +11,7 @@ import { ReactNode } from "react";
 import YPartyKitProvider from "y-partykit/provider";
 import { useAuth } from "@/lib/auth/provider";
 import { ExportButton } from "@/components/ui/export-button";
+import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 
 export function CollaborativeEditor({ documentId }: { documentId: string }) {
   // Create a new Yjs document
@@ -36,6 +37,7 @@ type EditorProps = {
 function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
   const { theme } = useTheme();
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [initialContent, setInitialContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -51,6 +53,10 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
       try {
         const response = await fetch(`/api/documents/${documentId}`);
         if (!response.ok) {
+          if (response.status === 403) {
+            setAccessDenied(true);
+            return;
+          }
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
         const data = await response.json();
@@ -127,9 +133,7 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
       fragment: doc.getXmlFragment("document-store"),
       user: {
         name: user?.name || randomName, // Use user name if logged in, else use dummy name
-        color: user
-          ? "#" + Math.floor(Math.random() * 16777215).toString(16)
-          : randomColor, // Use pastel color if not logged in
+        color: randomColor,
       },
     },
     domAttributes: {
@@ -181,6 +185,10 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
       }
     };
   }, [editor, documentId]);
+
+  if (accessDenied) {
+    return <AccessDeniedDialog />;
+  }
 
   if (isLoading) {
     return (
