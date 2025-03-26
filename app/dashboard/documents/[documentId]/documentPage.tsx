@@ -19,24 +19,9 @@ export default function DocumentPageClient({
   documentId: string;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: document, isLoading: documentLoading } =
     useDocument(documentId);
-  const { mutate: shareDocument, isPending: isSharing } =
-    useShareDocument(documentId);
-
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/dashboard/documents/${documentId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    toast({
-      title: "Link copied!",
-      description: "Share this link with others to collaborate.",
-    });
-  };
 
   if (!session && !sessionLoading) {
     router.push("/login");
@@ -63,43 +48,6 @@ export default function DocumentPageClient({
   return (
     <div className="mx-auto pb-6">
       <Card className="w-full">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h1 className="text-2xl font-semibold">{document?.title}</h1>
-          <div className="flex gap-2">
-            {document?.shared ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyLink}
-                disabled={copied}
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </>
-                )}
-              </Button>
-            ) : (
-              session?.user?.id === document?.authorId && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => shareDocument()}
-                  disabled={isSharing}
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
-                </Button>
-              )
-            )}
-          </div>
-        </div>
         <CardContent>
           <CollaborativeEditor documentId={documentId} />
         </CardContent>

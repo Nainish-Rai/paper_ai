@@ -5,6 +5,7 @@ import DashboardSideBar from "@/components/DashboardSideBar";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { useAuth } from "@/lib/auth/provider";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
+  const pathname = usePathname();
+
+  // Extract documentId from path if we're on a document page
+  const documentMatch = pathname?.match(/^\/dashboard\/documents\/([^/]+)$/);
+  const documentId = documentMatch ? documentMatch[1] : undefined;
 
   return (
     <div className="flex h-screen bg-background">
@@ -19,7 +25,7 @@ export default function DashboardLayout({
       <main className="flex-1 flex flex-col">
         <div className="h-16 border-b border-border bg-background/10 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
           <div className="px-6 h-full flex items-center">
-            {user && <DashboardHeader user={user} />}
+            {user && <DashboardHeader user={user} documentId={documentId} />}
           </div>
         </div>
         <div

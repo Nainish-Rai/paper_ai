@@ -109,15 +109,15 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
 
   // Pastel color palette for when user is not logged in
   const pastelColors = [
-    "#FFD6E0",
-    "#FFEFDA",
-    "#D1F0C1",
-    "#C1E9F0",
-    "#D5C1F0",
-    "#F0C1DD",
-    "#C1F0CE",
-    "#F0DFC1",
-    "#C1C7F0",
+    "#FF9FB6", // Brighter pink
+    "#FFCC80", // Vibrant peach
+    "#AED581", // Livelier lime
+    "#80DEEA", // Brighter teal
+    "#B39DDB", // Richer lavender
+    "#F48FB1", // Stronger rose
+    "#81C784", // Fresher mint
+    "#FFD54F", // Golden yellow
+    "#9FA8DA", // Bolder periwinkle
   ];
 
   // Get random name and color from arrays

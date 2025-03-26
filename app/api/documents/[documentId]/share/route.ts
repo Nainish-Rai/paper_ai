@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -15,9 +15,11 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const documentId = (await params).documentId;
+
     const document = await prisma.document.findUnique({
       where: {
-        id: params.documentId,
+        id: documentId,
       },
     });
 
@@ -31,7 +33,7 @@ export async function POST(
 
     const updatedDocument = await prisma.document.update({
       where: {
-        id: params.documentId,
+        id: documentId,
       },
       data: {
         shared: true,
