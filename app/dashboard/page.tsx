@@ -37,7 +37,7 @@ export default function DashboardPage() {
   if (!session?.user) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-4">
+    <div className="grid grid-cols-1 p-6 md:grid-cols-[300px_1fr] gap-4">
       <DashboardSidebar user={session.user} />
       <DocumentsSection
         documents={documents}

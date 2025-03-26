@@ -19,7 +19,10 @@ const DocumentCard = memo(({ document, onOpen }: DocumentCardProps) => {
   };
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card
+      onClick={handleOpen}
+      className="p-4 hover:shadow-md cursor-pointer duration-200 transition-shadow"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <File className="h-4 w-4 text-muted-foreground" />
