@@ -47,20 +47,18 @@ export default function DocumentPageClient({
   }
 
   return (
-    <div className="mx-auto pb-6">
-      <div className="mb-4 flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
+    <div className=" pb-6">
+      <div className="mb-4 flex items-center sticky w-full top-0 py-2 z-50 bg-white shadow-sm justify-between px-4">
+        <div className="flex items-center w-full justify-between gap-4">
           <h1 className="text-xl font-semibold">
             {document?.title || "Untitled"}
           </h1>
           <CollaboratorAvatars documentId={documentId} />
         </div>
       </div>
-      <Card className="w-full">
-        <CardContent>
-          <CollaborativeEditor documentId={documentId} />
-        </CardContent>
-      </Card>
+      <div className="px-4 max-w-5xl ">
+        <CollaborativeEditor documentId={documentId} />
+      </div>
     </div>
   );
 }

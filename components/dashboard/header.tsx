@@ -44,7 +44,7 @@ export function DashboardHeader({ user, documentId }: DashboardHeaderProps) {
   const isDocumentPage = Boolean(documentId && document);
 
   return (
-    <div className="border-b">
+    <div className="w-full  ">
       <div className="flex items-center justify-between px-4 py-4">
         <div>
           <Link href="/dashboard">

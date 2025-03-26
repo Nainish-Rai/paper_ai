@@ -20,10 +20,10 @@ export default function DashboardLayout({
   const documentId = documentMatch ? documentMatch[1] : undefined;
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen ">
       <DashboardSideBar />
       <main className="flex-1 flex flex-col">
-        <div className="h-16 border-b border-border bg-background/10 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
+        <div className="h-16 border-b border-border  sticky top-0 z-50 hidden">
           <div className="px-6 h-full flex items-center">
             {user && <DashboardHeader user={user} documentId={documentId} />}
           </div>
@@ -31,7 +31,7 @@ export default function DashboardLayout({
         <div
           className={cn(
             "flex-1 overflow-auto",
-            "px-6 py-6",
+            "",
             "transition-all duration-300 ease-in-out"
           )}
         >
