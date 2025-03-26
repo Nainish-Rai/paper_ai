@@ -1,28 +1,70 @@
 "use client";
 
-import { BlockNoteEditor } from "@blocknote/core";
-import { useCreateBlockNote } from "@blocknote/react";
+import {
+  DefaultThreadStoreAuth,
+  YjsThreadStore,
+} from "@blocknote/core/comments";
 import { BlockNoteView } from "@blocknote/mantine";
+import "@blocknote/mantine/style.css";
+import {
+  BlockNoteViewEditor,
+  FloatingComposerController,
+  ThreadsSidebar,
+  useCreateBlockNote,
+} from "@blocknote/react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import * as Y from "yjs";
-import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
-import styles from "./CollaborativeEditor.module.css";
-import { ReactNode } from "react";
 import YPartyKitProvider from "y-partykit/provider";
 import { useAuth } from "@/lib/auth/provider";
+import { useTheme } from "next-themes";
+import styles from "./CollaborativeEditor.module.css";
 import { ExportButton } from "@/components/ui/export-button";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 
-export function CollaborativeEditor({ documentId }: { documentId: string }) {
-  // Create a new Yjs document
-  const doc = new Y.Doc();
+// Define props for filter and sort selects
+type FilterType = "open" | "resolved" | "all";
+type SortType = "position" | "recent-activity" | "oldest";
 
-  // Set up PartyKit provider
-  const provider = new YPartyKitProvider(
-    "blocknote-dev.yousefed.partykit.dev",
-    // Use document ID as the room name for collaboration
-    `paper-ai-${documentId}`,
-    doc
+interface SelectProps {
+  label: string;
+  value: string;
+  options: { text: string; value: string }[];
+  onChange: (value: string) => void;
+}
+
+// Simple select component for filter and sort options
+function SettingsSelect({ label, value, options, onChange }: SelectProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm text-gray-600 dark:text-gray-400">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.text}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+export function CollaborativeEditor({ documentId }: { documentId: string }) {
+  // Initialize Yjs document
+  const doc = useMemo(() => new Y.Doc(), []);
+  const provider = useMemo(
+    () =>
+      new YPartyKitProvider(
+        "blocknote-dev.yousefed.partykit.dev",
+        `paper-ai-${documentId}`,
+        doc
+      ),
+    [doc, documentId]
   );
 
   return <BlockNote doc={doc} provider={provider} documentId={documentId} />;
@@ -36,18 +78,89 @@ type EditorProps = {
 
 function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [initialContent, setInitialContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const [initialContent, setInitialContent] = useState<any>(null);
 
-  // Default empty block for the editor if no content is available
-  const defaultContent = [
-    { type: "paragraph", content: [{ type: "text", text: "Hello" }] },
-  ];
+  // Comment filtering and sorting state
+  const [commentFilter, setCommentFilter] = useState<FilterType>("open");
+  const [commentSort, setCommentSort] = useState<SortType>("position");
 
-  // Fetch initial content from API
+  // Random color for anonymous users
+  const getRandomColor = () => {
+    const colors = [
+      "#FF9FB6",
+      "#FFCC80",
+      "#AED581",
+      "#80DEEA",
+      "#B39DDB",
+      "#F48FB1",
+      "#81C784",
+      "#FFD54F",
+      "#9FA8DA",
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  // Create thread store for comments
+  const threadStore = useMemo(() => {
+    return new YjsThreadStore(
+      user?.id || "anonymous",
+      doc.getMap("threads"),
+      new DefaultThreadStoreAuth(user?.id || "anonymous", "editor")
+    );
+  }, [doc, user]);
+
+  // Function to resolve user information for comments
+  const resolveUsers = async (userIds: string[]) => {
+    const validUserIds = userIds.filter((id) => id !== "anonymous");
+
+    if (validUserIds.length === 0) {
+      return userIds.map((id) => ({
+        id,
+        username: "Anonymous",
+        name: "Anonymous User",
+        avatarUrl: undefined,
+      }));
+    }
+
+    try {
+      const response = await fetch("/api/users/batch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds: validUserIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user information");
+      }
+
+      const users = await response.json();
+      return userIds.map((id) => {
+        const userInfo = users.find((u: any) => u.id === id);
+        return {
+          id,
+          username: userInfo?.name || "Anonymous",
+          name: userInfo?.name || "Anonymous User",
+          avatarUrl: userInfo?.image,
+        };
+      });
+    } catch (error) {
+      console.error("Error resolving users:", error);
+      return userIds.map((id) => ({
+        id,
+        username: "Anonymous",
+        name: "Anonymous User",
+        avatarUrl: undefined,
+      }));
+    }
+  };
+
+  // Fetch initial content
   useEffect(() => {
     const loadContent = async () => {
       try {
@@ -61,143 +174,59 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
         }
         const data = await response.json();
 
-        if (data.content) {
-          try {
+        try {
+          if (data.content) {
             const parsedContent = JSON.parse(data.content);
-            // Ensure content is an array and not empty
-            if (Array.isArray(parsedContent) && parsedContent.length > 0) {
-              setInitialContent(parsedContent);
-            } else {
-              console.warn(
-                "Content is empty or not an array, using default content"
-              );
-              setInitialContent(defaultContent);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse API content:", parseError);
-            setInitialContent(defaultContent);
+            setInitialContent(parsedContent);
           }
-        } else {
-          // No content available, use default
-          setInitialContent(defaultContent);
+        } catch (error) {
+          console.error("Error parsing content:", error);
         }
       } catch (error) {
-        console.error("Failed to fetch API content:", error);
-        setError("Failed to load document content");
-        setInitialContent(defaultContent);
+        console.error("Error loading content:", error);
+        setError("Failed to load document");
       } finally {
         setIsLoading(false);
       }
     };
+
     loadContent();
   }, [documentId]);
 
-  const { user } = useAuth();
-
-  // Dummy names for when user is not logged in
-  const dummyNames = [
-    "Curious Panda",
-    "Happy Dolphin",
-    "Clever Fox",
-    "Wise Owl",
-    "Friendly Giraffe",
-    "Brave Lion",
-    "Creative Koala",
-    "Calm Turtle",
-    "Swift Eagle",
-  ];
-
-  // Pastel color palette for when user is not logged in
-  const pastelColors = [
-    "#FF9FB6", // Brighter pink
-    "#FFCC80", // Vibrant peach
-    "#AED581", // Livelier lime
-    "#80DEEA", // Brighter teal
-    "#B39DDB", // Richer lavender
-    "#F48FB1", // Stronger rose
-    "#81C784", // Fresher mint
-    "#FFD54F", // Golden yellow
-    "#9FA8DA", // Bolder periwinkle
-  ];
-
-  // Get random name and color from arrays
-  const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
-  const randomColor =
-    pastelColors[Math.floor(Math.random() * pastelColors.length)];
-
-  // Only create the editor once initial content is loaded
-  const editor = useCreateBlockNote({
-    // initialContent: initialContent || defaultContent,
-    collaboration: {
-      provider,
-      fragment: doc.getXmlFragment("document-store"),
-      user: {
-        name: user?.name || randomName, // Use user name if logged in, else use dummy name
-        color: randomColor,
+  // Create editor with comments support
+  const editor = useCreateBlockNote(
+    {
+      initialContent,
+      collaboration: {
+        provider,
+        fragment: doc.getXmlFragment("document-store"),
+        user: {
+          name: user?.name || "Anonymous",
+          color: getRandomColor(),
+        },
+      },
+      comments: {
+        threadStore,
+      },
+      resolveUsers,
+      domAttributes: {
+        editor: {
+          class:
+            "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
+        },
       },
     },
-    domAttributes: {
-      editor: {
-        class:
-          "prose prose-sm sm:prose-base lg:prose-lg prose-stone dark:prose-invert focus:outline-none max-w-full",
-      },
-    },
-  });
+    [user, threadStore, initialContent]
+  );
 
-  // Save content to database periodically
-  useEffect(() => {
-    if (!editor) return;
-
-    const saveContent = async () => {
-      try {
-        const content = JSON.stringify(editor.document);
-        const response = await fetch(`/api/documents/${documentId}/update`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to save: ${response.statusText}`);
-        }
-      } catch (error) {
-        console.error("Failed to save document:", error);
-      }
-    };
-
-    // Debounced save handler
-    const handleUpdate = () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      saveTimeoutRef.current = setTimeout(saveContent, 2000);
-    };
-
-    // Subscribe to content changes
-    editor.onEditorContentChange(handleUpdate);
-
-    // Cleanup
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [editor, documentId]);
-
-  if (accessDenied) {
-    return <AccessDeniedDialog />;
-  }
-
-  if (isLoading) {
+  if (accessDenied) return <AccessDeniedDialog />;
+  if (isLoading || !editor) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white" />
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="w-full h-screen flex items-center justify-center text-red-500">
@@ -207,19 +236,56 @@ function BlockNote({ doc, provider, documentId }: EditorProps): ReactNode {
   }
 
   return (
-    <div className=" ">
-      <div className={styles.editorHeader}>
-        <div className="flex items-center justify-end p-2">
-          <ExportButton editor={editor} documentId={documentId} />
+    <BlockNoteView
+      editor={editor}
+      theme={theme as "light" | "dark"}
+      editable={true}
+      renderEditor={false}
+      comments={false}
+    >
+      <div className="flex h-full">
+        <div className="flex-grow flex flex-col">
+          <div className={styles.editorHeader}>
+            <div className="flex items-center justify-end p-2">
+              <ExportButton editor={editor} documentId={documentId} />
+            </div>
+          </div>
+          <div className={styles.editorPanel}>
+            <BlockNoteViewEditor />
+            <FloatingComposerController />
+          </div>
+        </div>
+        <div className="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold mb-4">Comments</h2>
+            <div className="space-y-4">
+              <SettingsSelect
+                label="Filter"
+                value={commentFilter}
+                options={[
+                  { text: "All", value: "all" },
+                  { text: "Open", value: "open" },
+                  { text: "Resolved", value: "resolved" },
+                ]}
+                onChange={(value) => setCommentFilter(value as FilterType)}
+              />
+              <SettingsSelect
+                label="Sort"
+                value={commentSort}
+                options={[
+                  { text: "Position", value: "position" },
+                  { text: "Recent activity", value: "recent-activity" },
+                  { text: "Oldest", value: "oldest" },
+                ]}
+                onChange={(value) => setCommentSort(value as SortType)}
+              />
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ThreadsSidebar filter={commentFilter} sort={commentSort} />
+          </div>
         </div>
       </div>
-      <div className={styles.editorPanel}>
-        <BlockNoteView
-          editor={editor}
-          className={styles.editorContainer}
-          theme={theme as "light" | "dark"}
-        />
-      </div>
-    </div>
+    </BlockNoteView>
   );
 }

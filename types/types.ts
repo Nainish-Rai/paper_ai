@@ -127,3 +127,10 @@ declare type TransformedImageProps = {
   hasDownload?: boolean;
   setIsTransforming?: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+// BlockNote Comment Types
+declare type CommentUser = {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+};
