@@ -6,9 +6,9 @@ export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, userId, context } = await req.json();
+    const { type, userId, context } = await req.json();
 
-    if (!text || !userId) {
+    if (!type || !userId) {
       return new Response(
         JSON.stringify({
           error: "Missing required fields",
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const aiContext: Partial<AIContextState> = context || {};
     const aiService = new AIService(userId);
-    const result = await aiService.improveStyle(text, aiContext);
+    const result = await aiService.generateTemplate(type, aiContext);
 
     return new Response(JSON.stringify(result), {
       headers: { "Content-Type": "application/json" },

@@ -17,9 +17,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const aiContext: Partial<AIContextState> = context || {};
+    const aiContext: Partial<AIContextState> = {
+      documentType: context?.documentType || "general",
+      currentSection: context?.currentSection || "body",
+      selectedText: text,
+      modelConfig: context?.modelConfig,
+    };
+
     const aiService = new AIService(userId);
-    const result = await aiService.improveStyle(text, aiContext);
+    const result = await aiService.getSuggestions(text, aiContext);
 
     return new Response(JSON.stringify(result), {
       headers: { "Content-Type": "application/json" },

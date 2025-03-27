@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React from "react";
 import { useAIFeatures } from "@/hooks/useAIFeatures";
-import { AIResponse } from "@/lib/ai/types";
+import { AIResponse, StyleAnalysis } from "@/lib/ai/types";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,14 +16,24 @@ interface AIToolbarProps {
   userId: string;
   selectedText: string;
   onUpdate: (text: string) => void;
+  context?: {
+    documentType?: string;
+    currentSection?: string;
+  };
 }
 
-export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
-  const [showTooltips, setShowTooltips] = useState(true);
-  const [showCommandMenu, setShowCommandMenu] = useState(false);
+const AIToolbar: React.FC<AIToolbarProps> = ({
+  userId,
+  selectedText,
+  onUpdate,
+  context,
+}) => {
+  const [showTooltips, setShowTooltips] = React.useState(true);
+  const [showCommandMenu, setShowCommandMenu] = React.useState(false);
+  const [showStyleAnalysis, setShowStyleAnalysis] = React.useState(false);
 
   // Add keyboard shortcut handler
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "k") {
         e.preventDefault();
@@ -37,16 +47,27 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
 
   const handleSuccess = (response: AIResponse) => {
     try {
-      const result = JSON.parse(response.content);
-      if (result.improvedText) {
-        onUpdate(result.improvedText);
-      } else if (result.summary) {
-        onUpdate(result.summary);
-      } else {
-        onUpdate(response.content);
+      if (response.analysis) {
+        const analysis = response.analysis as StyleAnalysis;
+        onUpdate(analysis.enhancedText);
+        // TODO: Show style analysis feedback in a modal/popover
+      } else if (response.content) {
+        try {
+          const result = JSON.parse(response.content);
+          if (result.improvedText) {
+            onUpdate(result.improvedText);
+          } else if (result.summary) {
+            onUpdate(result.summary);
+          } else {
+            onUpdate(response.content);
+          }
+        } catch {
+          // If parsing fails, use the raw content
+          onUpdate(response.content);
+        }
       }
     } catch (e) {
-      // If parsing fails, use the raw content
+      console.error("Error processing AI response:", e);
       onUpdate(response.content);
     }
   };
@@ -56,6 +77,8 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
     improveStyle,
     generateSummary,
     expandContent,
+    generateTemplate,
+    getSuggestions,
     isLoading,
   } = useAIFeatures({
     userId,
@@ -66,7 +89,7 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
     {
       name: "Check Grammar",
       icon: Icons.check,
-      action: () => checkGrammar(selectedText),
+      action: () => checkGrammar(selectedText, context),
       loading: isLoading("grammar"),
       tooltip: "Check grammar and spelling",
       shortcut: "Ctrl+G",
@@ -74,7 +97,7 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
     {
       name: "Improve Style",
       icon: Icons.edit,
-      action: () => improveStyle(selectedText),
+      action: () => improveStyle(selectedText, context),
       loading: isLoading("style"),
       tooltip: "Enhance writing style",
       shortcut: "Ctrl+S",
@@ -82,7 +105,7 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
     {
       name: "Summarize",
       icon: Icons.minimize,
-      action: () => generateSummary(selectedText),
+      action: () => generateSummary(selectedText, context),
       loading: isLoading("summary"),
       tooltip: "Generate summary",
       shortcut: "Ctrl+M",
@@ -90,10 +113,27 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
     {
       name: "Expand",
       icon: Icons.maximize,
-      action: () => expandContent(selectedText),
+      action: () => expandContent(selectedText, context),
       loading: isLoading("expand"),
       tooltip: "Expand content",
       shortcut: "Ctrl+E",
+    },
+    {
+      name: "Template",
+      icon: Icons.template,
+      action: () =>
+        generateTemplate(context?.documentType || "general", context),
+      loading: isLoading("template"),
+      tooltip: "Insert template",
+      shortcut: "Ctrl+T",
+    },
+    {
+      name: "Suggestions",
+      icon: Icons.lightbulb,
+      action: () => getSuggestions(selectedText, context),
+      loading: isLoading("suggestions"),
+      tooltip: "Get smart suggestions",
+      shortcut: "Ctrl+Space",
     },
   ];
 
@@ -153,7 +193,10 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
         selectedText={selectedText}
         onUpdate={onUpdate}
         userId={userId}
+        context={context}
       />
     </TooltipProvider>
   );
-}
+};
+
+export { AIToolbar };

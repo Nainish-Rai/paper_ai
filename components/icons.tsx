@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   Sparkles,
   CommandIcon,
+  FileText,
+  Lightbulb,
 } from "lucide-react";
 
 export const Icons = {
@@ -28,6 +30,8 @@ export const Icons = {
   warning: AlertTriangle,
   sparkles: Sparkles,
   command: CommandIcon,
+  template: FileText,
+  lightbulb: Lightbulb,
 };
 
 export type Icon = keyof typeof Icons;

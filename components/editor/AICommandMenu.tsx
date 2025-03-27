@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/command";
 import { useAIFeatures } from "@/hooks/useAIFeatures";
 import { useToast } from "@/components/ui/use-toast";
+import { AIContextState } from "@/lib/ai/types";
 
 interface AICommandMenuProps {
   isOpen: boolean;
@@ -19,6 +20,10 @@ interface AICommandMenuProps {
   selectedText: string;
   onUpdate: (newText: string) => void;
   userId: string;
+  context?: {
+    documentType?: string;
+    currentSection?: string;
+  };
 }
 
 interface Command {
@@ -34,24 +39,31 @@ export function AICommandMenu({
   selectedText,
   onUpdate,
   userId,
+  context,
 }: AICommandMenuProps) {
   const {
     checkGrammar,
     improveStyle,
     generateSummary,
     expandContent,
+    generateTemplate,
+    getSuggestions,
     isLoading,
   } = useAIFeatures({
     userId,
     onSuccess: (response) => {
       try {
-        const result = JSON.parse(response.content);
-        if (result.improvedText) {
-          onUpdate(result.improvedText);
-        } else if (result.summary) {
-          onUpdate(result.summary);
+        if (response.analysis) {
+          onUpdate(response.analysis.enhancedText);
         } else {
-          onUpdate(response.content);
+          const result = JSON.parse(response.content);
+          if (result.improvedText) {
+            onUpdate(result.improvedText);
+          } else if (result.summary) {
+            onUpdate(result.summary);
+          } else {
+            onUpdate(response.content);
+          }
         }
       } catch (e) {
         onUpdate(response.content);
@@ -61,13 +73,19 @@ export function AICommandMenu({
 
   const { toast } = useToast();
 
+  const aiContext: Partial<AIContextState> = {
+    documentType: context?.documentType,
+    currentSection: context?.currentSection,
+    selectedText,
+  };
+
   const commands: Command[] = [
     {
       id: "grammar",
       name: "Check Grammar",
       description: "Check and fix grammatical errors",
       action: async (text) => {
-        await checkGrammar(text);
+        await checkGrammar(text, aiContext);
       },
     },
     {
@@ -75,7 +93,7 @@ export function AICommandMenu({
       name: "Improve Style",
       description: "Enhance writing style and clarity",
       action: async (text) => {
-        await improveStyle(text);
+        await improveStyle(text, aiContext);
       },
     },
     {
@@ -83,7 +101,7 @@ export function AICommandMenu({
       name: "Generate Summary",
       description: "Create a concise summary of the text",
       action: async (text) => {
-        await generateSummary(text);
+        await generateSummary(text, aiContext);
       },
     },
     {
@@ -91,13 +109,29 @@ export function AICommandMenu({
       name: "Expand Content",
       description: "Elaborate and add more details",
       action: async (text) => {
-        await expandContent(text);
+        await expandContent(text, aiContext);
+      },
+    },
+    {
+      id: "template",
+      name: "Insert Template",
+      description: "Add a document template",
+      action: async () => {
+        await generateTemplate(context?.documentType || "general", aiContext);
+      },
+    },
+    {
+      id: "suggestions",
+      name: "Smart Suggestions",
+      description: "Get AI-powered suggestions",
+      action: async (text) => {
+        await getSuggestions(text, aiContext);
       },
     },
   ];
 
   const handleCommandSelect = async (command: Command) => {
-    if (!selectedText) {
+    if (!selectedText && command.id !== "template") {
       toast({
         title: "No text selected",
         description: "Please select some text to use this feature",

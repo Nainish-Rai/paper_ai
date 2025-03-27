@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { AIError, AIResponse } from "@/lib/ai/types";
+import { AIError, AIResponse, AIContextState } from "@/lib/ai/types";
 
 interface AIFeatureOptions {
   userId: string;
@@ -23,12 +23,17 @@ export function useAIFeatures(options: AIFeatureOptions) {
 
   const makeRequest = async (
     endpoint: string,
-    text: string
+    text: string,
+    context?: Partial<AIContextState>
   ): Promise<AIResponse> => {
     const response = await fetch(`/api/ai/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, userId: options.userId }),
+      body: JSON.stringify({
+        text,
+        userId: options.userId,
+        context,
+      }),
     });
 
     if (!response.ok) {
@@ -43,10 +48,13 @@ export function useAIFeatures(options: AIFeatureOptions) {
     return response.json();
   };
 
-  const checkGrammar = async (text: string) => {
+  const checkGrammar = async (
+    text: string,
+    context?: Partial<AIContextState>
+  ) => {
     setLoading((prev) => ({ ...prev, grammar: true }));
     try {
-      const response = await makeRequest("grammar", text);
+      const response = await makeRequest("grammar", text, context);
       options.onSuccess?.(response);
       return response;
     } catch (error: any) {
@@ -57,10 +65,13 @@ export function useAIFeatures(options: AIFeatureOptions) {
     }
   };
 
-  const improveStyle = async (text: string) => {
+  const improveStyle = async (
+    text: string,
+    context?: Partial<AIContextState>
+  ) => {
     setLoading((prev) => ({ ...prev, style: true }));
     try {
-      const response = await makeRequest("style", text);
+      const response = await makeRequest("style", text, context);
       options.onSuccess?.(response);
       return response;
     } catch (error: any) {
@@ -71,10 +82,13 @@ export function useAIFeatures(options: AIFeatureOptions) {
     }
   };
 
-  const generateSummary = async (text: string) => {
+  const generateSummary = async (
+    text: string,
+    context?: Partial<AIContextState>
+  ) => {
     setLoading((prev) => ({ ...prev, summary: true }));
     try {
-      const response = await makeRequest("summary", text);
+      const response = await makeRequest("summary", text, context);
       options.onSuccess?.(response);
       return response;
     } catch (error: any) {
@@ -85,10 +99,13 @@ export function useAIFeatures(options: AIFeatureOptions) {
     }
   };
 
-  const expandContent = async (text: string) => {
+  const expandContent = async (
+    text: string,
+    context?: Partial<AIContextState>
+  ) => {
     setLoading((prev) => ({ ...prev, expand: true }));
     try {
-      const response = await makeRequest("expand", text);
+      const response = await makeRequest("expand", text, context);
       options.onSuccess?.(response);
       return response;
     } catch (error: any) {
@@ -99,6 +116,59 @@ export function useAIFeatures(options: AIFeatureOptions) {
     }
   };
 
+  const generateTemplate = async (
+    type: string,
+    context?: Partial<AIContextState>
+  ) => {
+    setLoading((prev) => ({ ...prev, template: true }));
+    try {
+      const response = await fetch("/api/ai/template", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          userId: options.userId,
+          context,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new AIError(
+          error.error || "Template generation failed",
+          "API_ERROR",
+          response.status
+        );
+      }
+
+      const result = await response.json();
+      options.onSuccess?.(result);
+      return result;
+    } catch (error: any) {
+      handleError(error);
+      throw error;
+    } finally {
+      setLoading((prev) => ({ ...prev, template: false }));
+    }
+  };
+
+  const getSuggestions = async (
+    text: string,
+    context?: Partial<AIContextState>
+  ) => {
+    setLoading((prev) => ({ ...prev, suggestions: true }));
+    try {
+      const response = await makeRequest("suggest", text, context);
+      options.onSuccess?.(response);
+      return response;
+    } catch (error: any) {
+      handleError(error);
+      throw error;
+    } finally {
+      setLoading((prev) => ({ ...prev, suggestions: false }));
+    }
+  };
+
   const isLoading = (feature: string) => loading[feature] || false;
 
   return {
@@ -106,6 +176,8 @@ export function useAIFeatures(options: AIFeatureOptions) {
     improveStyle,
     generateSummary,
     expandContent,
+    generateTemplate,
+    getSuggestions,
     isLoading,
   };
 }

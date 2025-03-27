@@ -5,6 +5,8 @@ import {
   AIError,
   AIResponse,
   DEFAULT_MODEL_CONFIG,
+  StyleAnalysis,
+  DocumentTemplate,
 } from "./types";
 import { RateLimiter } from "./rateLimiter";
 
@@ -91,7 +93,60 @@ ${text}`;
     text: string,
     context?: Partial<AIContextState>
   ): Promise<AIResponse> {
-    const prompt = `Please improve the writing style of the following text while maintaining its meaning. Consider clarity, conciseness, and engagement. Respond with a JSON object containing "improvements" (array of suggested changes with explanations) and "improvedText" (the enhanced version):
+    const prompt = `Analyze and improve the following text. Provide a comprehensive style analysis with specific suggestions. Respond with a detailed JSON object following this structure:
+{
+  "tone": {
+    "category": "formal|informal|technical|conversational",
+    "confidence": 0-1,
+    "suggestions": []
+  },
+  "readability": {
+    "score": 0-100,
+    "grade": "string",
+    "suggestions": []
+  },
+  "improvements": [
+    {
+      "type": "clarity|conciseness|engagement|structure",
+      "original": "string",
+      "suggestion": "string",
+      "explanation": "string"
+    }
+  ],
+  "enhancedText": "string"
+}
+
+Text to analyze:
+${text}`;
+
+    const response = await this.createCompletion(prompt, context);
+    const analysis = JSON.parse(
+      response.choices[0].message.content || "{}"
+    ) as StyleAnalysis;
+
+    return {
+      content: analysis.enhancedText,
+      analysis,
+    };
+  }
+
+  async analyzeTone(
+    text: string,
+    context?: Partial<AIContextState>
+  ): Promise<AIResponse> {
+    const prompt = `Analyze the tone and writing style of the following text. Consider formality, technical level, and engagement. Provide specific suggestions for maintaining consistency or adjusting tone as needed:
+
+${text}`;
+
+    const response = await this.createCompletion(prompt, context);
+    return { content: response.choices[0].message.content || "" };
+  }
+
+  async analyzeReadability(
+    text: string,
+    context?: Partial<AIContextState>
+  ): Promise<AIResponse> {
+    const prompt = `Analyze the readability of the following text. Consider sentence structure, vocabulary level, and overall clarity. Provide a readability score and specific suggestions for improvement:
 
 ${text}`;
 
@@ -127,7 +182,45 @@ ${text}`;
     type: string,
     context?: Partial<AIContextState>
   ): Promise<AIResponse> {
-    const prompt = `Please generate a template for a ${type} document. Include placeholders and structural elements that would be typical for this type of content:`;
+    const prompt = `Generate a detailed document template for a ${type} document. Respond with a JSON object following this structure:
+{
+  "type": "string",
+  "structure": [
+    {
+      "section": "string",
+      "description": "string",
+      "placeholder": "string"
+    }
+  ],
+  "suggestions": ["string"],
+  "formatGuide": {
+    "tone": "string",
+    "style": "string",
+    "length": "string"
+  }
+}`;
+
+    const response = await this.createCompletion(prompt, context);
+    const template = JSON.parse(
+      response.choices[0].message.content || "{}"
+    ) as DocumentTemplate;
+
+    return {
+      content: JSON.stringify(template.structure, null, 2),
+      template,
+    };
+  }
+
+  async getSuggestions(
+    text: string,
+    context?: Partial<AIContextState>
+  ): Promise<AIResponse> {
+    const documentType = context?.documentType || "general";
+    const currentSection = context?.currentSection || "body";
+
+    const prompt = `Based on the following text and context (document type: ${documentType}, section: ${currentSection}), provide relevant suggestions for improvement, expansion, or related content:
+
+${text}`;
 
     const response = await this.createCompletion(prompt, context);
     return { content: response.choices[0].message.content || "" };

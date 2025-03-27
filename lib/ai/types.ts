@@ -24,7 +24,10 @@ export type AIActionType =
   | "style"
   | "summary"
   | "expansion"
-  | "template";
+  | "template"
+  | "tone"
+  | "readability"
+  | "suggestions";
 
 export interface AICommand {
   name: string;
@@ -35,8 +38,45 @@ export interface AICommand {
   responseType: "stream" | "single";
 }
 
+export interface StyleAnalysis {
+  tone: {
+    category: "formal" | "informal" | "technical" | "conversational";
+    confidence: number;
+    suggestions: string[];
+  };
+  readability: {
+    score: number; // 0-100
+    grade: string;
+    suggestions: string[];
+  };
+  improvements: Array<{
+    type: "clarity" | "conciseness" | "engagement" | "structure";
+    original: string;
+    suggestion: string;
+    explanation: string;
+  }>;
+  enhancedText: string;
+}
+
+export interface DocumentTemplate {
+  type: string;
+  structure: Array<{
+    section: string;
+    description: string;
+    placeholder: string;
+  }>;
+  suggestions: string[];
+  formatGuide: {
+    tone: string;
+    style: string;
+    length: string;
+  };
+}
+
 export interface AIResponse {
   content: string;
+  analysis?: StyleAnalysis;
+  template?: DocumentTemplate;
   usage?: {
     promptTokens: number;
     completionTokens: number;
