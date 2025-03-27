@@ -12,17 +12,31 @@ export async function POST(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { title, shared = false } = await request.json();
+    const { title, shared = false, content } = await request.json();
 
     if (!title) {
       return new NextResponse("Title is required", { status: 400 });
     }
 
-    // Create the document
+    // Validate that content is properly formatted JSON
+    let parsedContent;
+    try {
+      if (content) {
+        parsedContent = JSON.parse(content);
+        if (!Array.isArray(parsedContent)) {
+          throw new Error("Content must be an array of blocks");
+        }
+      }
+    } catch (error) {
+      console.error("Content parsing error:", error);
+      return new NextResponse("Invalid content format", { status: 400 });
+    }
+
+    // Create the document with initial content
     const document = await prisma.document.create({
       data: {
         title: title.trim(),
-        content: "",
+        content: content || "[]", // Store the stringified content
         authorId: session.user.id,
         shared,
       },

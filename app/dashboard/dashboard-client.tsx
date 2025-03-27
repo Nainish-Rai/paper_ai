@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WelcomeCard } from "@/components/dashboard/welcome-card";
 import { authClient } from "@/lib/auth/client";
 import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
+import { CreateDocument } from "@/components/dashboard/create-document";
+import { QuickActions } from "@/components/dashboard/quick-actions";
 
 export function DashboardClient() {
   const router = useRouter();
@@ -61,6 +63,11 @@ export function DashboardClient() {
 
       {/* AI Usage */}
       <div className="grid gap-4 grid-cols-1">
+        <QuickActions
+          onUploadDocument={() => {}}
+          onTemplates={() => {}}
+          onSettings={() => {}}
+        />
         <AIUsageCard userId={session.data?.user.id || ""} />
       </div>
     </>
