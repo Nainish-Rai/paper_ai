@@ -2,66 +2,95 @@
 
 ## Completed Features
 
-### Core Editor
+### AI Integration (Phase 1)
+
+- [x] Core AI service with Llama 3.1 8B Instant model via Groq
+- [x] Rate limiting system with Redis (production) and in-memory (development)
+- [x] AI endpoints for various text operations:
+  - Grammar checking
+  - Style improvement
+  - Summarization
+  - Content expansion
+- [x] AI usage tracking and monitoring
+- [x] Dashboard integration with usage statistics
+- [x] Real-time text selection handling
+- [x] AI toolbar in editor
+
+### Editor Features
 
 - [x] Rich text editing with BlockNote
 - [x] Real-time collaboration
-- [x] Document saving and loading
-- [x] Import/Export functionality
-- [x] AI completion features
+- [x] Document sharing
+- [x] Import/Export capabilities
+- [x] User presence indicators
 
 ### Authentication
 
 - [x] Email-based authentication
 - [x] Protected routes
-- [x] User management
-
-### Document Management
-
-- [x] Document creation
-- [x] Document sharing
-- [x] Document permissions
-- [x] Recent documents list
-
-### AI Features
-
-- [x] AI text completion
-- [x] Streaming responses
-- [x] Context-aware suggestions
-- [x] User feedback (toasts)
-
-### Real-time Features
-
-- [x] Collaborative editing
-- [x] Presence indicators
-- [x] Document synchronization
+- [x] User sessions
 
 ## In Progress
 
-- [ ] Rate limiting for AI features
-- [ ] Usage tracking
-- [ ] Advanced AI capabilities
+### AI Features (Phase 2)
+
+- [ ] User feedback UI for AI operations
+- [ ] Keyboard shortcuts for AI features
+- [ ] AI command palette
+- [ ] Enhanced error handling
 - [ ] Performance optimizations
+
+### Editor Improvements
+
+- [ ] Enhanced collaborative features
+- [ ] Advanced formatting options
+- [ ] Template system
+- [ ] Document version history
 
 ## Planned Features
 
-- [ ] Document versioning
-- [ ] Advanced sharing options
-- [ ] Enhanced AI features
-  - [ ] Text summarization
-  - [ ] Style suggestions
-  - [ ] Grammar checking
-- [ ] Collaborative comments
+### AI Enhancements (Phase 3-4)
+
+- [ ] Advanced style analysis
+- [ ] Smart templates
+- [ ] Context-aware suggestions
+- [ ] Advanced document analysis
+- [ ] AI-powered document organization
+
+### User Experience
+
+- [ ] Improved loading states
+- [ ] Enhanced error messages
+- [ ] Tutorial system
+- [ ] User preferences
+- [ ] Theme customization
 
 ## Known Issues
 
-- Need to implement rate limiting for AI features
-- Performance optimization for large documents
-- Better error handling for offline scenarios
+1. Rate limiting needs production testing
+2. AI response times can be optimized
+3. Error handling can be improved
+4. Need better feedback for AI operations
 
-## Technical Debt
+## Environment Setup
 
-- Add comprehensive error handling
-- Implement proper API documentation
-- Add end-to-end tests
-- Optimize database queries
+### Production Requirements
+
+- OPENAI_API_KEY (for Groq)
+- UPSTASH_REDIS_REST_URL
+- UPSTASH_REDIS_REST_TOKEN
+
+### Development
+
+- OPENAI_API_KEY (for Groq)
+- In-memory rate limiting (no Redis required)
+
+## Next Steps
+
+1. Gather user feedback on AI features
+2. Implement keyboard shortcuts
+3. Add command palette for AI operations
+4. Enhance error handling
+5. Optimize AI response times
+6. Add user feedback UI
+7. Implement usage analytics

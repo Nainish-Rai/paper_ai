@@ -7,6 +7,7 @@ import { DocumentsSection } from "@/components/dashboard/documents-section";
 import { WelcomeCard } from "@/components/dashboard/welcome-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { StatsCard } from "@/components/dashboard/stats-card";
+import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -34,6 +35,10 @@ export default function DashboardPage() {
     router.push("/settings");
   };
 
+  if (!session?.user?.id) {
+    return null;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
       <WelcomeCard session={session} />
@@ -44,8 +49,9 @@ export default function DashboardPage() {
           onTemplates={handleTemplates}
           onSettings={handleSettings}
         />
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-4">
           <StatsCard documents={documents} />
+          <AIUsageCard userId={session.user.id} />
         </div>
       </div>
 

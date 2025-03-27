@@ -16,6 +16,15 @@ export class RateLimiter {
     this.redis = getRedis();
   }
 
+  // Static getters for rate limit constants
+  static get maxRequestsPerMinute(): number {
+    return AI_RATE_LIMIT.MAX_REQUESTS_PER_MINUTE;
+  }
+
+  static get maxTokensPerDay(): number {
+    return AI_RATE_LIMIT.MAX_TOKENS_PER_DAY;
+  }
+
   private getMinuteKey(): string {
     const now = new Date();
     return `${RATE_LIMIT_PREFIX}${this.userId}:${now.getUTCFullYear()}:${
@@ -85,10 +94,10 @@ export class RateLimiter {
     const resetTime = Math.ceil(now / 60000) * 60000; // Next minute
     const remaining = Math.max(
       0,
-      AI_RATE_LIMIT.MAX_REQUESTS_PER_MINUTE - requestCount
+      RateLimiter.maxRequestsPerMinute - requestCount
     );
 
-    if (requestCount > AI_RATE_LIMIT.MAX_REQUESTS_PER_MINUTE) {
+    if (requestCount > RateLimiter.maxRequestsPerMinute) {
       const retryAfter = Math.ceil((resetTime - now) / 1000);
       throw new RateLimitError(
         "Rate limit exceeded. Please try again later.",
@@ -96,7 +105,7 @@ export class RateLimiter {
       );
     }
 
-    if (tokenCount >= AI_RATE_LIMIT.MAX_TOKENS_PER_DAY) {
+    if (tokenCount >= RateLimiter.maxTokensPerDay) {
       const nextDay = new Date();
       nextDay.setUTCHours(24, 0, 0, 0);
       const retryAfter = Math.ceil((nextDay.getTime() - now) / 1000);
@@ -107,7 +116,7 @@ export class RateLimiter {
     }
 
     return {
-      limit: AI_RATE_LIMIT.MAX_REQUESTS_PER_MINUTE,
+      limit: RateLimiter.maxRequestsPerMinute,
       remaining,
       reset: Math.floor(resetTime / 1000),
     };
