@@ -5,6 +5,10 @@ import {
   Image as ImageIcon,
   Moon,
   Sun,
+  Check,
+  Edit3,
+  Minimize2,
+  Maximize2,
 } from "lucide-react";
 
 export const Icons = {
@@ -14,6 +18,10 @@ export const Icons = {
   image: ImageIcon,
   moon: Moon,
   sun: Sun,
+  check: Check,
+  edit: Edit3,
+  minimize: Minimize2,
+  maximize: Maximize2,
 };
 
 export type Icon = keyof typeof Icons;

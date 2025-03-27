@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 import { EditorProvider } from "./editor/EditorProvider";
 import { EditorContent } from "./editor/EditorContent";
@@ -14,16 +14,24 @@ import { Loader2, Sparkles } from "lucide-react";
 import { DefaultBlockSchema, PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import { parse } from "path";
+import { useAuth } from "../lib/auth/provider";
 
 export function CollaborativeEditor({ documentId }: { documentId: string }) {
+  const userId = useAuth().user?.id;
   return (
-    <EditorProvider documentId={documentId}>
-      <EditorWrapper documentId={documentId} />
+    <EditorProvider userId={userId || ""} documentId={documentId}>
+      <EditorWrapper userId={userId || ""} documentId={documentId} />
     </EditorProvider>
   );
 }
 
-function EditorWrapper({ documentId }: { documentId: string }) {
+function EditorWrapper({
+  userId,
+  documentId,
+}: {
+  userId: string;
+  documentId: string;
+}) {
   const { isLoading, error, accessDenied, initialContent, editor } =
     useDocumentData(documentId);
   const { generateCompletion, isGenerating } = useAICompletion();
@@ -89,6 +97,7 @@ function EditorWrapper({ documentId }: { documentId: string }) {
   return (
     <div className="flex flex-col h-full">
       <EditorHeader
+        userId={userId || ""}
         documentId={documentId}
         editor={editor}
         rightContent={

@@ -4,6 +4,8 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "next-themes";
+import { EditorHeader } from "./editor/EditorHeader";
+import { useEditorContext } from "./editor/EditorProvider";
 
 type EditorProps = {
   documentId: string;
@@ -15,6 +17,7 @@ export function Editor({
   initialContent: propInitialContent,
 }: EditorProps) {
   const { theme } = useTheme();
+  const { userId } = useEditorContext();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -136,7 +139,8 @@ export function Editor({
   // Show editor
   return (
     <div className="w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <div className="w-full bg-white dark:bg-gray-800 mx-auto mt-4 relative">
+      <div className="w-full bg-white dark:bg-gray-800 mx-auto relative">
+        <EditorHeader editor={editor} documentId={documentId} userId={userId} />
         {isSaving && (
           <div className="absolute z-50 top-2 right-2 px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
             Saving...

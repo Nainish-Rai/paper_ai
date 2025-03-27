@@ -2,101 +2,75 @@
 
 ## Current Focus
 
-- Real-time collaboration features using PartyKit
-  - Document presence with live collaborator avatars
-  - User join/leave handling
-  - Presence synchronization across instances
-  - Visual indicators for current user
+- Enhanced editor capabilities with AI features
+- Real-time collaboration improvements
+- Document management system
 
-=======
-The project is in its initial development phase with focus on:
+## Latest Changes
 
-1. Better Auth integration and authentication system
-2. Document management with React Query
-3. BlockNote editor integration with PartyKit
+### AI Integration
 
-## Recent Changes
+- Added AI completion feature to the editor
+  - Uses Groq API with Llama 3.1 8B Instant
+  - Streaming completions for better UX
+  - Context-aware text generation
+  - Integrated with BlockNote editor
 
-- Set up Prisma with Postgres
-- Implemented Better Auth for authentication
-- Migrated from LiveBlocks to PartyKit for real-time collaboration
-- Implemented BlockNote editor with real-time sync
-- Added document sharing functionality
-- Added confirmation dialogs for destructive actions
-- Integrated React Query for data fetching
+### New AI Features
+
+- Grammar checking
+- Style improvement
+- Content summarization
+- Text expansion
+- Dual-mode rate limiting:
+  - Redis in production
+  - In-memory in development
+- Real-time selection integration
+
+### Editor Improvements
+
+- AI toolbar in editor header
+- Enhanced editing capabilities
+- Better content handling
+- User-aware editing context
 
 ## Active Decisions
 
-1. Authentication
-
-   - Better Auth library for authentication system
-   - Email-based authentication for simplicity
-   - JWT-based session management
-   - Server-side authentication checks
-
-2. Editor Implementation
-
-   - BlockNote for rich text editing
-   - PartyKit integration for real-time sync
-   - Collaborative editing features
-   - Theme support (light/dark)
-
-3. Data Management
-   - React Query for server state management
-   - Document creation and sharing
-   - Document deletion with owner validation
-   - User permissions system
-   - Real-time updates
-   - Protection against unauthorized deletions
+1. Using BlockNote for rich text editing
+2. AI completions stream directly into editor
+3. Real-time sync with PartyKit
+4. Flexible rate limiting strategy
+   - Redis for production
+   - In-memory for development
+5. Document sharing and permissions
 
 ## Current Considerations
 
-1. Security
-
-   - Better Auth security implementation
-   - Protected API routes
-   - Data validation
-   - Owner-only deletion permissions
-
-2. Performance
-   - React Query caching optimization
-   - Real-time sync optimization
-   - BlockNote editor performance
-   - Database query optimization
-   - Efficient document state management
+- AI model optimization
+- Streaming performance
+- Error handling and fallbacks
+- User feedback mechanisms
+- Performance monitoring
+- Redis configuration in production
+- Development environment setup
 
 ## Next Steps
 
-1. Authentication Enhancements
+- [ ] Add Redis configuration to production environment
+- [ ] Add user feedback UI for AI features
+- [ ] Implement keyboard shortcuts
+- [ ] Add AI command palette
+- [ ] Enhance error handling
+- [ ] Improve collaborative features
 
-   - Better Auth features configuration
-   - User profile management
-   - Session handling improvements
-   - Security optimizations
+## Environment Setup Required
 
-2. Data Layer Improvements
+1. Production Environment:
 
-   - React Query cache strategies
-   - Optimistic updates implementation
-   - Real-time sync with PartyKit
-   - Error handling patterns
+   - UPSTASH_REDIS_REST_URL
+   - UPSTASH_REDIS_REST_TOKEN
+   - OPENAI_API_KEY (for Groq)
 
-3. Editor Features
-
-   - BlockNote extension configuration
-   - Additional collaboration features
-   - AI integration with editor
-   - Custom menu and toolbar
-
-4. Document System
-
-   - Advanced permissions
-   - User roles
-   - Activity tracking
-   - Document versioning
-
-5. Dashboard Implementation
-   - Document management UI
-   - User settings
-   - Activity overview
-   - Bulk operations on documents
+2. Development Environment:
+   - OPENAI_API_KEY (for Groq)
+   - No Redis required (uses in-memory)
