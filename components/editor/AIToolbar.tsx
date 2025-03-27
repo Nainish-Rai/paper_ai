@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAIFeatures } from "@/hooks/useAIFeatures";
 import { AIResponse } from "@/lib/ai/types";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Icons } from "@/components/icons";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { AICommandMenu } from "./AICommandMenu";
 
 interface AIToolbarProps {
   userId: string;
@@ -19,6 +20,20 @@ interface AIToolbarProps {
 
 export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
   const [showTooltips, setShowTooltips] = useState(true);
+  const [showCommandMenu, setShowCommandMenu] = useState(false);
+
+  // Add keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        setShowCommandMenu(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleSuccess = (response: AIResponse) => {
     try {
@@ -112,7 +127,33 @@ export function AIToolbar({ userId, selectedText, onUpdate }: AIToolbarProps) {
             )}
           </Tooltip>
         ))}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => setShowCommandMenu(true)}
+              disabled={!selectedText}
+            >
+              <Icons.command className="h-4 w-4" />
+              <span className="sr-only">AI Commands</span>
+            </Button>
+          </TooltipTrigger>
+          {showTooltips && (
+            <TooltipContent side="bottom">
+              <p>AI Commands (Ctrl+K)</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
       </div>
+      <AICommandMenu
+        isOpen={showCommandMenu}
+        onClose={() => setShowCommandMenu(false)}
+        selectedText={selectedText}
+        onUpdate={onUpdate}
+        userId={userId}
+      />
     </TooltipProvider>
   );
 }

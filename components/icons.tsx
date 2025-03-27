@@ -11,6 +11,7 @@ import {
   Maximize2,
   AlertTriangle,
   Sparkles,
+  CommandIcon,
 } from "lucide-react";
 
 export const Icons = {
@@ -26,6 +27,7 @@ export const Icons = {
   maximize: Maximize2,
   warning: AlertTriangle,
   sparkles: Sparkles,
+  command: CommandIcon,
 };
 
 export type Icon = keyof typeof Icons;
