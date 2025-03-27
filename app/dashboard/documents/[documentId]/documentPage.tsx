@@ -48,7 +48,7 @@ export default function DocumentPageClient({
 
   return (
     <div className=" pb-6">
-      <div className="mb-4 flex items-center sticky w-full top-0 py-2 z-50 bg-white shadow-sm justify-between px-4">
+      <div className="mb-4 flex items-center sticky w-full top-0 py-2 z-50 bg-white dark:bg-background shadow-sm justify-between px-4">
         <div className="flex items-center w-full justify-between gap-4">
           <h1 className="text-xl font-semibold">
             {document?.title || "Untitled"}
