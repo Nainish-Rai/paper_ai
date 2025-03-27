@@ -9,6 +9,29 @@ export interface AIContextState {
 export interface AIModelConfig {
   temperature: number;
   max_tokens: number;
+  response_format?: {
+    type: "json_object";
+  };
+}
+
+export interface StructuredAIResponse {
+  improvedText: string;
+  analysis?: {
+    tone?: {
+      category: string;
+      suggestions: string[];
+    };
+    readability?: {
+      score: number;
+      suggestions: string[];
+    };
+    improvements?: Array<{
+      type: string;
+      original: string;
+      suggestion: string;
+      explanation: string;
+    }>;
+  };
 }
 
 export interface AIAction {
@@ -73,10 +96,31 @@ export interface DocumentTemplate {
   };
 }
 
+export interface StructuredAIResponse {
+  improvedText: string;
+  analysis?: {
+    tone?: {
+      category: string;
+      suggestions: string[];
+    };
+    readability?: {
+      score: number;
+      suggestions: string[];
+    };
+    improvements?: Array<{
+      type: string;
+      original: string;
+      suggestion: string;
+      explanation: string;
+    }>;
+  };
+}
+
 export interface AIResponse {
   content: string;
   analysis?: StyleAnalysis;
   template?: DocumentTemplate;
+  structuredResponse?: StructuredAIResponse;
   usage?: {
     promptTokens: number;
     completionTokens: number;

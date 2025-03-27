@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { AIResponseCard } from "./AIResponseCard";
 import { useAIFeatures } from "@/hooks/useAIFeatures";
 import { useToast } from "@/components/ui/use-toast";
 import { AIContextState } from "@/lib/ai/types";
@@ -41,6 +42,9 @@ export function AICommandMenu({
   userId,
   context,
 }: AICommandMenuProps) {
+  const [showResponse, setShowResponse] = React.useState(false);
+  const [currentResponse, setCurrentResponse] = React.useState<any>(null);
+
   const {
     checkGrammar,
     improveStyle,
@@ -52,24 +56,33 @@ export function AICommandMenu({
   } = useAIFeatures({
     userId,
     onSuccess: (response) => {
-      try {
-        if (response.analysis) {
-          onUpdate(response.analysis.enhancedText);
-        } else {
+      if (response.structuredResponse) {
+        setCurrentResponse(response.structuredResponse);
+        setShowResponse(true);
+      } else {
+        try {
           const result = JSON.parse(response.content);
           if (result.improvedText) {
-            onUpdate(result.improvedText);
-          } else if (result.summary) {
-            onUpdate(result.summary);
+            setCurrentResponse({
+              improvedText: result.improvedText,
+              analysis: result.analysis,
+            });
+            setShowResponse(true);
           } else {
             onUpdate(response.content);
           }
+        } catch (e) {
+          onUpdate(response.content);
         }
-      } catch (e) {
-        onUpdate(response.content);
       }
     },
   });
+
+  const handleInsert = (text: string) => {
+    onUpdate(text);
+    setShowResponse(false);
+    onClose();
+  };
 
   const { toast } = useToast();
 
@@ -149,27 +162,42 @@ export function AICommandMenu({
   };
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={onClose}>
-      <Command>
-        <CommandInput placeholder="Search AI commands..." />
-        <CommandList>
-          <CommandEmpty>No commands found.</CommandEmpty>
-          <CommandGroup heading="AI Actions">
-            {commands.map((command) => (
-              <CommandItem
-                key={command.id}
-                onSelect={() => handleCommandSelect(command)}
-                disabled={isLoading(command.id)}
-              >
-                <span>{command.name}</span>
-                <span className="text-sm text-muted-foreground ml-2">
-                  {command.description}
-                </span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </CommandDialog>
+    <>
+      {showResponse ? (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <AIResponseCard
+            response={currentResponse}
+            onInsert={handleInsert}
+            onClose={() => {
+              setShowResponse(false);
+              onClose();
+            }}
+          />
+        </div>
+      ) : (
+        <CommandDialog open={isOpen} onOpenChange={onClose}>
+          <Command>
+            <CommandInput placeholder="Search AI commands..." />
+            <CommandList>
+              <CommandEmpty>No commands found.</CommandEmpty>
+              <CommandGroup heading="AI Actions">
+                {commands.map((command) => (
+                  <CommandItem
+                    key={command.id}
+                    onSelect={() => handleCommandSelect(command)}
+                    disabled={isLoading(command.id)}
+                  >
+                    <span>{command.name}</span>
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {command.description}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </CommandDialog>
+      )}
+    </>
   );
 }

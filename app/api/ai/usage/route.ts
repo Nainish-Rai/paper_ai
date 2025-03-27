@@ -26,27 +26,39 @@ export async function GET(req: Request) {
         now.getUTCMonth() + 1
       }:${now.getUTCDate()}`;
 
-      const monthKey = `ai:tokens:${userId}:${now.getUTCFullYear()}:${
+      const monthKey = `ai:ratelimit:${userId}:${now.getUTCFullYear()}:${
         now.getUTCMonth() + 1
       }:*`;
 
-      const [dailyTokens, requests] = await Promise.all([
-        redis.get<number>(dayKey),
-        redis.keys(monthKey),
-      ]);
+      // Get daily token usage
+      const dailyTokens = (await redis.get<number>(dayKey)) || 0;
+
+      // Get rate limit info for remaining requests
+      const rateLimitInfo = await rateLimiter.checkRateLimit();
+
+      // Get all keys for the current month
+      const monthlyKeys = await redis.keys(monthKey);
+
+      // Sum up all requests from the month
+      let monthlyRequests = 0;
+      if (monthlyKeys.length > 0) {
+        const values = await redis.mget<number[]>(...monthlyKeys);
+        monthlyRequests = values.reduce((sum, val) => sum + (val || 0), 0);
+      }
 
       usage = {
-        dailyTokens: dailyTokens || 0,
-        monthlyRequests: requests.length,
-        remainingRequests: RateLimiter.maxRequestsPerMinute,
+        dailyTokens,
+        monthlyRequests,
+        remainingRequests: rateLimitInfo.remaining,
         maxTokensPerDay: RateLimiter.maxTokensPerDay,
       };
     } else {
       // Return mock data in development
+      const rateLimitInfo = await rateLimiter.checkRateLimit();
       usage = {
         dailyTokens: 0,
         monthlyRequests: 0,
-        remainingRequests: RateLimiter.maxRequestsPerMinute,
+        remainingRequests: rateLimitInfo.remaining,
         maxTokensPerDay: RateLimiter.maxTokensPerDay,
       };
     }
@@ -55,6 +67,19 @@ export async function GET(req: Request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error: any) {
+    if (error.message.includes("Rate limit exceeded")) {
+      // If rate limit error, return 0 remaining requests but don't fail the request
+      return new Response(
+        JSON.stringify({
+          dailyTokens: 0,
+          monthlyRequests: 0,
+          remainingRequests: 0,
+          maxTokensPerDay: RateLimiter.maxTokensPerDay,
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({
         error: error.message || "Internal server error",
