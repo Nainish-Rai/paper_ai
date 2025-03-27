@@ -50,6 +50,7 @@
     "framer-motion": "^11.0.5",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.331.0",
+    "mammoth": "^1.9.0",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.2",
     "motion": "^12.5.0",
