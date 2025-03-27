@@ -82,7 +82,7 @@ export function RecentDocuments() {
       <div className="space-y-4">
         {recentDocs.map((doc) => (
           <Link
-            href={`/dashboard/room/${doc.roomId}/document/${doc.id}`}
+            href={`/dashboard/documents/${doc.id}`}
             key={doc.id}
             className="flex items-center p-3 rounded-md border border-border hover:bg-accent transition-colors"
           >

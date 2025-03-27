@@ -1,66 +1,53 @@
-"use client";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AIPerformanceCard } from "@/components/dashboard/ai-performance-card";
+import { DashboardClient } from "./dashboard-client";
 
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth/client";
-import { useDocuments } from "@/lib/hooks/useDocuments";
-import { DocumentsSection } from "@/components/dashboard/documents-section";
-import { WelcomeCard } from "@/components/dashboard/welcome-card";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import { StatsCard } from "@/components/dashboard/stats-card";
-import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const { data: documents, isLoading, error } = useDocuments(session?.user?.id);
-
-  const handleOpenDocument = (id: string) => {
-    if (id) {
-      router.push(`/dashboard/documents/${id}`);
-      router.refresh();
-    }
-  };
-
-  const handleUploadDocument = () => {
-    // Implement document upload functionality
-    console.log("Upload document");
-  };
-
-  const handleTemplates = () => {
-    // Implement templates page navigation
-    console.log("Navigate to templates");
-  };
-
-  const handleSettings = () => {
-    router.push("/settings");
-  };
-
-  if (!session?.user?.id) {
-    return null;
-  }
-
+export default async function Dashboard() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
-      <WelcomeCard session={session} />
+    <div className="flex flex-col gap-6 p-8">
+      {/* Main Dashboard Content */}
+      <Suspense fallback={<Skeleton className="h-[200px]" />}>
+        <DashboardClient />
+      </Suspense>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <QuickActions
-          onUploadDocument={handleUploadDocument}
-          onTemplates={handleTemplates}
-          onSettings={handleSettings}
-        />
-        <div className="md:col-span-2 space-y-4">
-          <StatsCard documents={documents} />
-          <AIUsageCard userId={session.user.id} />
-        </div>
+      {/* AI Performance Analytics */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-6 lg:grid-cols-12">
+        <Suspense fallback={<Skeleton className="h-[400px] col-span-3" />}>
+          <AIPerformanceCard
+            endpoint="grammar"
+            title="Grammar Check Performance"
+            description="Response times and success rates for grammar checking"
+          />
+        </Suspense>
+
+        <Suspense fallback={<Skeleton className="h-[400px] col-span-3" />}>
+          <AIPerformanceCard
+            endpoint="style"
+            title="Style Analysis Performance"
+            description="Response times and success rates for style analysis"
+          />
+        </Suspense>
+
+        <Suspense fallback={<Skeleton className="h-[400px] col-span-3" />}>
+          <AIPerformanceCard
+            endpoint="template"
+            title="Template Generation Performance"
+            description="Response times and success rates for template generation"
+          />
+        </Suspense>
+
+        <Suspense fallback={<Skeleton className="h-[400px] col-span-3" />}>
+          <AIPerformanceCard
+            endpoint="completion"
+            title="AI Completion Performance"
+            description="Response times and success rates for AI completions"
+          />
+        </Suspense>
       </div>
-
-      <DocumentsSection
-        documents={documents}
-        isLoading={isLoading}
-        error={error}
-        onOpenDocument={handleOpenDocument}
-      />
     </div>
   );
 }
