@@ -2,47 +2,57 @@
 
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
-import { useEffect } from "react";
-import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
-import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
-import { DocumentsSection } from "@/components/dashboard/documents-section";
 import { useDocuments } from "@/lib/hooks/useDocuments";
+import { DocumentsSection } from "@/components/dashboard/documents-section";
+import { WelcomeCard } from "@/components/dashboard/welcome-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { StatsCard } from "@/components/dashboard/stats-card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session, isPending: sessionLoading } = authClient.useSession();
-  const userId = session?.user?.id;
+  const { data: session } = authClient.useSession();
+  const { data: documents, isLoading, error } = useDocuments(session?.user?.id);
 
-  const {
-    data: documents,
-    isLoading: documentsLoading,
-    error: documentsError,
-  } = useDocuments(userId);
-
-  // Handle redirection for unauthenticated users
-  useEffect(() => {
-    if (!sessionLoading && !session) {
-      router.push("/login");
-    }
-  }, [session, sessionLoading, router]);
-
-  // Handle document opening
   const handleOpenDocument = (id: string) => {
-    router.push(`/dashboard/documents/${id}`);
+    if (id) {
+      router.push(`/dashboard/documents/${id}`);
+      router.refresh();
+    }
   };
 
-  // Early return for unauthenticated users or during loading
-  if (!session && !sessionLoading) return null;
-  if (sessionLoading || documentsLoading) return <DashboardSkeleton />;
-  if (!session?.user) return null;
+  const handleUploadDocument = () => {
+    // Implement document upload functionality
+    console.log("Upload document");
+  };
+
+  const handleTemplates = () => {
+    // Implement templates page navigation
+    console.log("Navigate to templates");
+  };
+
+  const handleSettings = () => {
+    router.push("/settings");
+  };
 
   return (
-    <div className="grid grid-cols-1 p-6 md:grid-cols-[300px_1fr] gap-4">
-      <DashboardSidebar user={session.user} />
+    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+      <WelcomeCard session={session} />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <QuickActions
+          onUploadDocument={handleUploadDocument}
+          onTemplates={handleTemplates}
+          onSettings={handleSettings}
+        />
+        <div className="md:col-span-2">
+          <StatsCard documents={documents} />
+        </div>
+      </div>
+
       <DocumentsSection
         documents={documents}
-        isLoading={documentsLoading}
-        error={documentsError as Error | null}
+        isLoading={isLoading}
+        error={error}
         onOpenDocument={handleOpenDocument}
       />
     </div>

@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useDocumentStore } from "@/lib/stores/documentStore";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, PlusCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
-export function CreateDocument() {
+export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const router = useRouter();
@@ -66,9 +66,16 @@ export function CreateDocument() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full justify-start">
-          <Plus className="mr-2 h-4 w-4" />
-          New Document
+        <Button
+          variant="outline"
+          className={
+            isHorizontal
+              ? "flex w-full text-left gap-"
+              : "flex h-full w-full flex-col items-start rounded-lg border p-4 text-left transition-colors hover:bg-muted/50 "
+          }
+        >
+          <PlusCircle className="h-5 w-5 mb-2 text-muted-foreground" />
+          <span className="text-sm font-medium">New Document</span>
         </Button>
       </DialogTrigger>
       <DialogContent>
