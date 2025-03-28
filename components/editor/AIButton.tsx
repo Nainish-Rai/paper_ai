@@ -54,9 +54,10 @@ export function AIButton() {
 
       const parsedMdBlock = await editor.tryParseMarkdownToBlocks(completion);
 
-      // Insert after the current block
-      editor.insertBlocks(parsedMdBlock, currentBlockId, "after");
-      toast.success("AI completion added");
+      // Insert new content where the old block is
+      editor.insertBlocks(parsedMdBlock, currentBlockId, "before");
+      editor.removeBlocks([currentBlockId]);
+      toast.success("AI completion replaced original content");
     } catch (err) {
       console.error("AI completion error:", err);
       toast.error("Failed to generate AI completion");
