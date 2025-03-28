@@ -19,7 +19,7 @@ export function useDocumentData(documentId: string) {
   const [accessDenied, setAccessDenied] = useState(false);
   const [initialContent, setInitialContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch initial content from API
   useEffect(() => {
@@ -71,7 +71,7 @@ export function useDocumentData(documentId: string) {
 
   // Create the editor once initial content is loaded
   const editor = useCreateBlockNote({
-    // initialContent: initialContent || DEFAULT_CONTENT,
+    initialContent: initialContent || DEFAULT_CONTENT,
     collaboration: {
       provider,
       fragment: doc.getXmlFragment("document-store"),
@@ -87,6 +87,24 @@ export function useDocumentData(documentId: string) {
       },
     },
   });
+
+  // Handle initial content synchronization
+  useEffect(() => {
+    if (!editor || !provider || !initialContent) return;
+
+    const handleSync = () => {
+      const fragment = doc.getXmlFragment("document-store");
+      if (fragment.length === 0) {
+        // Replace editor content with initial content
+        editor.replaceBlocks(editor.topLevelBlocks, initialContent);
+      }
+    };
+
+    provider.on("sync", handleSync);
+    return () => {
+      provider.off("sync", handleSync);
+    };
+  }, [editor, provider, initialContent, doc]);
 
   // Save content to database periodically
   useEffect(() => {
