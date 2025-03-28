@@ -1,25 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
-import {
-  BlockNoteEditor,
-  DefaultBlockSchema,
-  PartialBlock,
-} from "@blocknote/core";
+import { BlockNoteEditor } from "@blocknote/core";
 import { useEditorContext } from "@/components/editor/EditorProvider";
 import { useAuth } from "@/lib/auth/provider";
 import { useCollaborationUser } from "@/hooks/useCollaborationUser";
 
 // Default empty block for the editor if no content is available
-const DEFAULT_CONTENT: PartialBlock<DefaultBlockSchema>[] = [
-  {
-    type: "paragraph",
-    content: [{ type: "text", text: "Hello", styles: {} }],
-    props: {
-      textAlignment: "left",
-      backgroundColor: "default",
-      textColor: "default",
-    },
-  },
+const DEFAULT_CONTENT = [
+  { type: "paragraph", content: [{ type: "text", text: "Hello" }] },
 ];
 
 export function useDocumentData(documentId: string) {
@@ -29,11 +17,9 @@ export function useDocumentData(documentId: string) {
 
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [initialContent, setInitialContent] = useState<
-    PartialBlock<DefaultBlockSchema>[] | null
-  >(null);
+  const [initialContent, setInitialContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Fetch initial content from API
   useEffect(() => {
@@ -83,58 +69,9 @@ export function useDocumentData(documentId: string) {
     loadContent();
   }, [documentId]);
 
-  // Convert content to proper BlockNote format
-  const convertToBlockNoteContent = (
-    content: any
-  ): PartialBlock<DefaultBlockSchema>[] => {
-    if (!content) return DEFAULT_CONTENT;
-
-    try {
-      if (Array.isArray(content)) {
-        return content.map(
-          (block) =>
-            ({
-              type: "paragraph",
-              content: Array.isArray(block.content)
-                ? block.content.map(
-                    (c: {
-                      type: string;
-                      text: string;
-                      styles?: Record<string, unknown>;
-                    }) => ({
-                      type: c.type,
-                      text: c.text,
-                      styles: c.styles || {},
-                    })
-                  )
-                : [{ type: "text", text: "", styles: {} }],
-              props: {
-                textAlignment: "left",
-                backgroundColor: "default",
-                textColor: "default",
-              },
-            } as PartialBlock<DefaultBlockSchema>)
-        );
-      }
-      return [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: String(content), styles: {} }],
-          props: {
-            textAlignment: "left",
-            backgroundColor: "default",
-            textColor: "default",
-          },
-        },
-      ];
-    } catch {
-      return DEFAULT_CONTENT;
-    }
-  };
-
-  // Create the editor once initial content is loaded
+  // Create the editor only when initial content is fully loaded
   const editor = useCreateBlockNote({
-    initialContent: convertToBlockNoteContent(initialContent),
+    initialContent: isLoading ? undefined : initialContent || DEFAULT_CONTENT,
     collaboration: {
       provider,
       fragment: doc.getXmlFragment("document-store"),
@@ -150,31 +87,6 @@ export function useDocumentData(documentId: string) {
       },
     },
   });
-
-  // Handle initial content synchronization
-  useEffect(() => {
-    if (!editor || !provider || !initialContent) return;
-
-    const handleSync = () => {
-      const fragment = doc.getXmlFragment("document-store");
-      if (fragment.length === 0) {
-        try {
-          // Use the converter function to ensure valid content
-          const content = convertToBlockNoteContent(initialContent);
-          editor.replaceBlocks(editor.topLevelBlocks, content);
-        } catch (error) {
-          console.error("Failed to initialize editor content:", error);
-          // Fallback to default content if initialization fails
-          editor.replaceBlocks(editor.topLevelBlocks, DEFAULT_CONTENT);
-        }
-      }
-    };
-
-    provider.on("sync", handleSync);
-    return () => {
-      provider.off("sync", handleSync);
-    };
-  }, [editor, provider, initialContent, doc]);
 
   // Save content to database periodically
   useEffect(() => {

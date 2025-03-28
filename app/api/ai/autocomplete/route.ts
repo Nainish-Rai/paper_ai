@@ -5,7 +5,6 @@ import OpenAI from "openai";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   baseURL: "https://api.groq.com/openai/v1",
-  // baseURL: "https://openrouter.ai/api/v1",
 });
 
 export const runtime = "edge";
