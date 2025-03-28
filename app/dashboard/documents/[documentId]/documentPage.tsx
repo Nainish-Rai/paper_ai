@@ -5,12 +5,9 @@ import { authClient } from "@/lib/auth/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollaborativeEditor } from "@/components/CollaborativeEditor";
+import { motion } from "framer-motion";
 import { useDocument } from "@/lib/hooks/useDocument";
-import { Button } from "@/components/ui/button";
-import { Share2, Copy, Check } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useShareDocument } from "@/lib/hooks/useShareDocument";
-import { useState } from "react";
+import { useSidebarStore } from "@/lib/stores/sidebarStore";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 import { CollaboratorAvatars } from "@/components/dashboard/collaborator-avatars";
 import { EditableTitle } from "@/components/dashboard/editable-title";
@@ -21,6 +18,8 @@ export default function DocumentPageClient({
   documentId: string;
 }) {
   const router = useRouter();
+  const { isOpen } = useSidebarStore();
+  console.log("sidebar open", isOpen);
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: document, isLoading: documentLoading } =
     useDocument(documentId);
@@ -58,9 +57,22 @@ export default function DocumentPageClient({
           <CollaboratorAvatars documentId={documentId} />
         </div>
       </div>
-      <div className="px-4 max-w-5xl">
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          layout: {
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+          },
+          opacity: { duration: 0.2 },
+        }}
+        className={`px-4  ${!isOpen ? "mx-auto max-w-4xl" : "max-w-5xl"}`}
+      >
         <CollaborativeEditor documentId={documentId} />
-      </div>
+      </motion.div>
     </div>
   );
 }

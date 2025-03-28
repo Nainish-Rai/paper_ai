@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface EditableTitleProps {
   documentId: string;
@@ -81,33 +82,54 @@ export function EditableTitle({
     }
   }, [isEditing]);
 
-  if (isEditing) {
-    return (
-      <Input
-        ref={inputRef}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={handleSubmit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            handleSubmit();
-          } else if (e.key === "Escape") {
-            setTitle(initialTitle);
-            setIsEditing(false);
-          }
-        }}
-        className={cn("h-9 px-2 font-semibold", className)}
-      />
-    );
-  }
-
   return (
-    <div
-      className={cn("group flex items-center gap-2 cursor-pointer", className)}
-      onClick={() => setIsEditing(true)}
-    >
-      <h1 className="text-xl font-semibold">{title}</h1>
-      <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-    </div>
+    <AnimatePresence mode="wait">
+      {isEditing ? (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+        >
+          <Input
+            ref={inputRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit();
+              } else if (e.key === "Escape") {
+                setTitle(initialTitle);
+                setIsEditing(false);
+              }
+            }}
+            className={cn(" px-2 text-2xl border-none font-semibold")}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          className={cn(
+            "group flex items-center gap-2 cursor-pointer",
+            className
+          )}
+          onClick={() => setIsEditing(true)}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          transition={{ duration: 0.15 }}
+        >
+          <motion.h1 className="text-xl font-semibold" layout>
+            {title}
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            whileHover={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Pencil className="h-4 w-4" />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

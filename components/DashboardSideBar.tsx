@@ -5,15 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import {
-  ChevronLeft,
-  Search,
-  Settings,
-  Clock,
-  LogOut,
-  HomeIcon,
-} from "lucide-react";
-import { useState, useCallback } from "react";
+import { ChevronLeft, Search, Settings, Clock, LogOut } from "lucide-react";
+import { HomeIcon } from "./ui/home";
+import { useCallback, useState } from "react";
+import { useSidebarStore } from "@/lib/stores/sidebarStore";
 import {
   Tooltip,
   TooltipContent,
@@ -23,10 +18,11 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClockIcon } from "./ui/clock";
 
 function DashboardSideBar() {
   const { user, signOut } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isOpen, toggle, setOpen } = useSidebarStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -41,7 +37,7 @@ function DashboardSideBar() {
   );
 
   useHotkeys("alt+\\", () => {
-    setIsCollapsed((prev) => !prev);
+    toggle();
   });
 
   const getInitials = (name: string | null | undefined) => {
@@ -99,8 +95,8 @@ function DashboardSideBar() {
         id={id}
         variant={variant}
         className={cn(
-          "justify-start transition-all",
-          isCollapsed ? "justify-center px-2" : "",
+          "justify-start text-sm transition-all",
+          !isOpen ? "justify-center px-2" : "",
           variant === "destructive"
             ? "hover:bg-destructive/90 hover:text-destructive-foreground"
             : ""
@@ -110,11 +106,11 @@ function DashboardSideBar() {
         disabled={disabled}
       >
         {icon}
-        {!isCollapsed && <span>{label}</span>}
+        {isOpen && <span>{label}</span>}
       </Button>
     );
 
-    if (isCollapsed) {
+    if (!isOpen) {
       return (
         <TooltipProvider delayDuration={300}>
           <Tooltip>
@@ -143,7 +139,7 @@ function DashboardSideBar() {
     <nav
       className={cn(
         "border-r bg-background relative group/sidebar transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-[80px]" : "w-[280px]"
+        !isOpen ? "w-[80px]" : "w-[280px]"
       )}
       aria-label="Dashboard sidebar"
     >
@@ -156,17 +152,17 @@ function DashboardSideBar() {
               size="icon"
               className={cn(
                 "h-6 w-6 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 z-10",
-                isCollapsed && "rotate-180"
+                !isOpen && "rotate-180"
               )}
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-expanded={!isCollapsed}
+              onClick={toggle}
+              aria-label={!isOpen ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={isOpen}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>{isCollapsed ? "Expand" : "Collapse"} sidebar</p>
+            <p>{!isOpen ? "Expand" : "Collapse"} sidebar</p>
             <p className="text-xs text-muted-foreground">Alt + \</p>
           </TooltipContent>
         </Tooltip>
@@ -177,7 +173,7 @@ function DashboardSideBar() {
         <div
           className={cn(
             "flex items-center gap-2 px-2 py-2",
-            isCollapsed ? "justify-center" : "justify-start"
+            !isOpen ? "justify-center" : "justify-start"
           )}
         >
           {user ? (
@@ -192,7 +188,7 @@ function DashboardSideBar() {
             <Skeleton className="h-8 w-8 rounded-full" />
           )}
 
-          {!isCollapsed && (
+          {isOpen && (
             <div className="flex-1 overflow-hidden">
               {user ? (
                 <>
@@ -214,7 +210,7 @@ function DashboardSideBar() {
         </div>
 
         {/* Search bar */}
-        <div className={cn("px-2", isCollapsed && "hidden")}>
+        <div className={cn("px-2", !isOpen && "hidden")}>
           <Button
             id="search-button"
             variant="secondary"
@@ -235,16 +231,16 @@ function DashboardSideBar() {
           <div
             className={cn(
               "flex gap-2",
-              isCollapsed ? "flex-col items-center" : "flex-col items-stretch"
+              !isOpen ? "flex-col items-center" : "flex-col items-stretch"
             )}
           >
             <TooltipButton
-              icon={<HomeIcon className="h-4 w-4 mr-2" />}
+              icon={<HomeIcon className="h-5 w-5 mr-2" />}
               label="Home"
               onClick={() => router.push("/dashboard/")}
             />
             <TooltipButton
-              icon={<Clock className="h-4 w-4 mr-2" />}
+              icon={<ClockIcon className="h-4 w-4 mr-2" />}
               label="Recent"
               onClick={() => router.push("/dashboard/")}
             />
@@ -259,13 +255,10 @@ function DashboardSideBar() {
         {/* Logout */}
         <div className="px-2 mt-auto pt-4">
           <TooltipButton
-            variant={isCollapsed ? "ghost" : "outline"}
+            variant={!isOpen ? "ghost" : "outline"}
             icon={
               <LogOut
-                className={cn(
-                  "h-4 w-4 bg-transparent ",
-                  !isCollapsed && "mr-2"
-                )}
+                className={cn("h-4 w-4 bg-transparent ", isOpen && "mr-2")}
               />
             }
             label="Sign out"

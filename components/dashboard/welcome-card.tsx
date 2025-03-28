@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import Image from "next/image";
+import { AnimatedClock } from "../ui/animated-clock";
 
 export function WelcomeCard({ session }: { session: any }) {
   // Extract user's name or use "there" as a fallback
@@ -44,7 +45,8 @@ export function WelcomeCard({ session }: { session: any }) {
             </p>
           </div>
         </div>
-        <Card className="flex items-center gap-3 p-3 border border-muted hover:border-primary/20 transition-all duration-200">
+        <AnimatedClock />
+        {/* <Card className="flex items-center gap-3 p-3 border border-muted hover:border-primary/20 transition-all duration-200">
           <Clock className="h-8 w-8 text-primary/80" />
           <div className="flex flex-col">
             <p className="text-sm font-medium text-foreground">
@@ -58,7 +60,7 @@ export function WelcomeCard({ session }: { session: any }) {
                 .toLowerCase()}
             </p>
           </div>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
