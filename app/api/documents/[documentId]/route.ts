@@ -74,3 +74,75 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
+  const resolvedParams = await params;
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: "Unauthorized - Please log in" },
+        { status: 401 }
+      );
+    }
+
+    const { title } = await request.json();
+
+    if (!title) {
+      return NextResponse.json(
+        { message: "Title is required" },
+        { status: 400 }
+      );
+    }
+
+    const document = await prisma.document.findUnique({
+      where: {
+        id: resolvedParams.documentId,
+      },
+    });
+
+    if (!document) {
+      return NextResponse.json(
+        { message: "Document not found" },
+        { status: 404 }
+      );
+    }
+
+    // Only author can update the document
+    if (document.authorId !== session.user.id) {
+      return NextResponse.json(
+        {
+          message:
+            "Access denied - You don't have permission to update this document",
+        },
+        { status: 403 }
+      );
+    }
+
+    const updatedDocument = await prisma.document.update({
+      where: {
+        id: resolvedParams.documentId,
+      },
+      data: {
+        title,
+      },
+    });
+
+    return NextResponse.json(updatedDocument);
+  } catch (error) {
+    console.error("[Document Update]", error);
+    return NextResponse.json(
+      {
+        message: "Failed to update document",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}

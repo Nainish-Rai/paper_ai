@@ -13,6 +13,7 @@ import { useShareDocument } from "@/lib/hooks/useShareDocument";
 import { useState } from "react";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 import { CollaboratorAvatars } from "@/components/dashboard/collaborator-avatars";
+import { EditableTitle } from "@/components/dashboard/editable-title";
 
 export default function DocumentPageClient({
   documentId,
@@ -47,16 +48,17 @@ export default function DocumentPageClient({
   }
 
   return (
-    <div className=" pb-6">
+    <div className="pb-6">
       <div className="mb-4 flex items-center sticky w-full top-0 py-2 z-50 bg-white dark:bg-background shadow-sm justify-between px-4">
         <div className="flex items-center w-full justify-between gap-4">
-          <h1 className="text-xl font-semibold">
-            {document?.title || "Untitled"}
-          </h1>
+          <EditableTitle
+            documentId={documentId}
+            initialTitle={document?.title || "Untitled"}
+          />
           <CollaboratorAvatars documentId={documentId} />
         </div>
       </div>
-      <div className="px-4 max-w-5xl ">
+      <div className="px-4 max-w-5xl">
         <CollaborativeEditor documentId={documentId} />
       </div>
     </div>
