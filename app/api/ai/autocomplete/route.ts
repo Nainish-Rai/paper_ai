@@ -5,6 +5,7 @@ import OpenAI from "openai";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   baseURL: "https://api.groq.com/openai/v1",
+  // baseURL: "https://openrouter.ai/api/v1",
 });
 
 export const runtime = "edge";
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
   // Request the OpenAI API for the response
   const response = await openai.chat.completions.create({
     model: "llama-3.1-8b-instant",
+    // model: "google/gemini-2.0-flash-exp:free",
     stream: true,
     messages: [
       { role: "user", content: `Complete this text naturally: ${prompt}` },

@@ -33,6 +33,7 @@ export class AIService {
   constructor(userId: string) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
+      // baseURL: "https://openrouter.ai/api/v1",
       baseURL: "https://api.groq.com/openai/v1",
     });
     this.rateLimiter = new RateLimiter(userId);
