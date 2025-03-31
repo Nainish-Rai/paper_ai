@@ -5,10 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
-    const id = (await params).id;
+    const id = (await params).documentId;
+
+    console.log(id, "delete id");
 
     const session = await auth.api.getSession({
       headers: await headers(),
