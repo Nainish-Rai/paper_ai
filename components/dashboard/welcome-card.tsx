@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import Image from "next/image";
 import { AnimatedClock } from "../ui/animated-clock";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function WelcomeCard({ session }: { session: any }) {
   // Extract user's name or use "there" as a fallback
@@ -61,6 +62,24 @@ export function WelcomeCard({ session }: { session: any }) {
             </p>
           </div>
         </Card> */}
+      </div>
+    </div>
+  );
+}
+
+// Add skeleton version of the welcome card
+export function WelcomeCardSkeleton() {
+  return (
+    <div className="mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-32 w-32 rounded-md" /> {/* Image skeleton */}
+          <div>
+            <Skeleton className="h-10 w-64 mb-2" /> {/* Title skeleton */}
+            <Skeleton className="h-5 w-48" /> {/* Subtitle skeleton */}
+          </div>
+        </div>
+        <Skeleton className="h-16 w-16 rounded-full" /> {/* Clock skeleton */}
       </div>
     </div>
   );

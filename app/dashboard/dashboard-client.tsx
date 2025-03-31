@@ -1,45 +1,59 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { memo } from "react";
 import { useDocuments } from "@/lib/hooks/useDocuments";
 import { useProfile } from "@/lib/hooks/useProfile";
 import { DocumentsSection } from "@/components/dashboard/documents-section";
 import { RecentDocuments } from "@/components/dashboard/recent-documents";
-import { UserWelcome } from "@/components/dashboard/user-welcome";
-import { Skeleton } from "@/components/ui/skeleton";
-import { WelcomeCard } from "@/components/dashboard/welcome-card";
+import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
 import { authClient } from "@/lib/auth/client";
 import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
-import { CreateDocument } from "@/components/dashboard/create-document";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+
+// Memoize components to prevent unnecessary re-renders
+const MemoizedDocumentsSection = memo(DocumentsSection);
+const MemoizedRecentDocuments = memo(RecentDocuments);
+const MemoizedQuickActions = memo(QuickActions);
+const MemoizedAIUsageCard = memo(AIUsageCard);
 
 export function DashboardClient() {
   const router = useRouter();
+  const session = authClient.useSession();
+  const userId = session.data?.user.id;
+
+  // Use dependent queries to improve loading efficiency
   const { profile, isLoading: profileLoading } = useProfile();
+
   const {
     data: documents,
     isLoading: documentsLoading,
     error: documentsError,
   } = useDocuments(profile?.id);
-  const session = authClient.useSession();
 
   const handleOpenDocument = (id: string) => {
     router.push(`/dashboard/documents/${id}`);
   };
 
+  // Redirect if no profile after load attempt
+  if (!profileLoading && !profile) {
+    router.push("/login");
+    return null;
+  }
+
+  // Render appropriate skeletons while loading
   if (profileLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <Skeleton className="h-[72px] w-[300px]" />
-        <Skeleton className="h-[200px]" />
-        <Skeleton className="h-[400px]" />
+        <WelcomeCardSkeleton />
+        <div className="grid gap-4 grid-cols-1">
+          <DocumentsSkeletonSection />
+        </div>
+        <div className="grid gap-4 grid-cols-1">
+          <QuickActionsSkeletonSection />
+        </div>
       </div>
     );
-  }
-
-  if (!profile) {
-    router.push("/login");
-    return null;
   }
 
   return (
@@ -48,12 +62,12 @@ export function DashboardClient() {
 
       {/* Recent Documents Section */}
       <div className="grid gap-4 grid-cols-1">
-        <RecentDocuments />
+        <MemoizedRecentDocuments />
       </div>
 
       {/* All Documents Section */}
       <div className="grid gap-4 grid-cols-1">
-        <DocumentsSection
+        <MemoizedDocumentsSection
           documents={documents}
           isLoading={documentsLoading}
           error={documentsError}
@@ -63,13 +77,47 @@ export function DashboardClient() {
 
       {/* AI Usage */}
       <div className="grid gap-4 grid-cols-1">
-        <QuickActions
-          onUploadDocument={() => {}}
-          onTemplates={() => {}}
-          onSettings={() => {}}
+        <MemoizedQuickActions
+          onUploadDocument={() => router.push("/dashboard/upload")}
+          onTemplates={() => router.push("/dashboard/templates")}
+          onSettings={() => router.push("/dashboard/settings")}
         />
-        <AIUsageCard userId={session.data?.user.id || ""} />
+        <MemoizedAIUsageCard userId={userId || ""} />
       </div>
     </>
   );
 }
+
+// Component-specific skeleton loaders
+function DocumentsSkeletonSection() {
+  return (
+    <div className="rounded-lg border bg-card text-card-foreground animate-pulse">
+      <div className="p-6">
+        <div className="h-5 w-32 bg-muted rounded mb-4"></div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-16 bg-muted rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickActionsSkeletonSection() {
+  return (
+    <div className="rounded-lg border bg-card text-card-foreground animate-pulse">
+      <div className="p-6">
+        <div className="h-5 w-24 bg-muted rounded mb-4"></div>
+        <div className="grid grid-cols-2 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-20 bg-muted rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Import WelcomeCard with correct import, as it was previously undefined
+import { WelcomeCard } from "@/components/dashboard/welcome-card";
