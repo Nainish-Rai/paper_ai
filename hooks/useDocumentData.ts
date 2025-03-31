@@ -71,7 +71,6 @@ export function useDocumentData(documentId: string) {
 
   // Create the editor only when initial content is fully loaded
   const editor = useCreateBlockNote({
-    initialContent: isLoading ? undefined : initialContent || DEFAULT_CONTENT,
     collaboration: {
       provider,
       fragment: doc.getXmlFragment("document-store"),
