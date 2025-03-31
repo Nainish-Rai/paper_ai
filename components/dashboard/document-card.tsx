@@ -24,8 +24,7 @@ const DocumentCard = memo(
       }
     );
 
-    function formatTimeAgo(dateString: string) {
-      const date = new Date(dateString);
+    function formatTimeAgo(date: Date) {
       const diff = Date.now() - date.getTime();
       const minutes = Math.floor(diff / 60000);
 
@@ -69,10 +68,7 @@ const DocumentCard = memo(
                   {formatTimeAgo(document.updatedAt)}
                 </span>
                 <Users className="h-3 w-3 mr-1" />
-                <span className="mr-4">
-                  {document.collaborators} collaborator
-                  {document.collaborators !== 1 ? "s" : ""}
-                </span>
+                <span className="mr-4">collaborators</span>
                 <span className="text-muted-foreground">
                   Created {formattedDate}
                 </span>
@@ -94,12 +90,12 @@ const DocumentCard = memo(
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Collaborator Avatars */}
+            {/* Collaborator Avatars
             {document.collaborators > 0 && (
               <div className="hidden sm:block">
                 <CollaboratorAvatars documentId={document.id} />
               </div>
-            )}
+            )} */}
 
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>

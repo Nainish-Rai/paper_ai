@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { z } from "zod";
@@ -13,8 +13,8 @@ const templateUpdateSchema = z.object({
 
 // GET /api/templates/[id]
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -26,7 +26,7 @@ export async function GET(
     }
 
     const template = await prisma.template.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         author: {
           select: {
@@ -56,8 +56,8 @@ export async function GET(
 
 // PATCH /api/templates/[id]
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -69,7 +69,7 @@ export async function PATCH(
     }
 
     const template = await prisma.template.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
 
     if (!template) {
@@ -84,7 +84,7 @@ export async function PATCH(
     const validatedData = templateUpdateSchema.parse(json);
 
     const updatedTemplate = await prisma.template.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: validatedData,
     });
 
@@ -100,8 +100,8 @@ export async function PATCH(
 
 // DELETE /api/templates/[id]
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -113,7 +113,7 @@ export async function DELETE(
     }
 
     const template = await prisma.template.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
 
     if (!template) {
@@ -125,7 +125,7 @@ export async function DELETE(
     }
 
     await prisma.template.delete({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
 
     return new NextResponse(null, { status: 204 });
