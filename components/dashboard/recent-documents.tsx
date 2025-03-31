@@ -14,7 +14,7 @@ import {
   Clock,
   Users,
   Loader2,
-  MoreVertical,
+  ChevronRight,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -34,7 +34,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -49,6 +48,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { CollaboratorAvatars } from "./collaborator-avatars";
 
 export function RecentDocuments() {
   const { data: recentDocs, isLoading, error, refetch } = useRecentDocuments();
@@ -203,18 +203,18 @@ export function RecentDocuments() {
         {recentDocs.map((doc) => (
           <div
             key={doc.id}
-            className="flex items-center p-3 rounded-md border border-border hover:bg-accent transition-colors"
+            className="flex items-center p-3 rounded-md border border-border hover:bg-accent/50 transition-colors group"
+            onClick={() => router.push(`/dashboard/documents/${doc.id}`)}
           >
-            <Link
-              href={`/dashboard/documents/${doc.id}`}
-              className="flex items-center flex-grow min-w-0"
-            >
+            <div className="flex items-center flex-grow min-w-0 cursor-pointer">
               <FileText className="h-5 w-5 mr-3 text-muted-foreground" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{doc.title}</p>
                 <div className="flex items-center text-xs text-muted-foreground mt-1">
                   <Clock className="h-3 w-3 mr-1" />
-                  <span className="mr-2">{formatTimeAgo(doc.updatedAt)}</span>
+                  <span className="mr-3 text-gray-500">
+                    {formatTimeAgo(doc.updatedAt)}
+                  </span>
                   <Users className="h-3 w-3 mr-1" />
                   <span>
                     {doc.collaborators} collaborator
@@ -222,21 +222,30 @@ export function RecentDocuments() {
                   </span>
                 </div>
               </div>
-            </Link>
+            </div>
+
+            {/* Collaborator Avatars - show small avatars next to document */}
+            <div className="flex-shrink-0 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              {doc.collaborators > 0 && (
+                <CollaboratorAvatars documentId={doc.id} />
+              )}
+            </div>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="ml-2 flex-shrink-0"
+                  className="ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="sr-only">Options</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setRenameDoc(doc);
                     setNewTitle(doc.title);
                   }}
@@ -246,7 +255,8 @@ export function RecentDocuments() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setDocToDelete(doc.id);
                     setIsDeleteDialogOpen(true);
                   }}
@@ -264,9 +274,11 @@ export function RecentDocuments() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Documents</CardTitle>
+      <Card className="shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">
+            Recent Documents
+          </CardTitle>
           <CardDescription>
             Continue working on your recent documents
           </CardDescription>

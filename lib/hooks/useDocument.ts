@@ -1,8 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions, QueryKey } from "@tanstack/react-query";
 
-export function useDocument(documentId: string) {
+export function useDocument<TData = any>(
+  documentId: string,
+  options?: Partial<UseQueryOptions<TData, Error, TData, QueryKey>>
+) {
   return useQuery({
     queryKey: ["document", documentId],
     queryFn: async () => {
@@ -12,5 +15,9 @@ export function useDocument(documentId: string) {
       }
       return response.json();
     },
+    // Default staleTime of 1 minute for general use
+    staleTime: 1000 * 60,
+    // Apply any additional query options passed in
+    ...options,
   });
 }

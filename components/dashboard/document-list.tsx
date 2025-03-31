@@ -10,6 +10,7 @@ interface DocumentListProps {
   isLoading: boolean;
   error: Error | null;
   onOpenDocument: (id: string) => void;
+  filter?: "all" | "personal" | "collaborative";
 }
 
 export function DocumentList({
@@ -17,6 +18,7 @@ export function DocumentList({
   isLoading,
   error,
   onOpenDocument,
+  filter = "all",
 }: DocumentListProps) {
   if (error) {
     return (
@@ -31,16 +33,32 @@ export function DocumentList({
 
   if (!isLoading && (!documents || documents.length === 0)) {
     return (
-      <p className="text-center text-muted-foreground py-8">
-        No documents yet. Create your first document!
-      </p>
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <p className="text-muted-foreground mb-2">
+          {filter === "all"
+            ? "No documents found"
+            : filter === "personal"
+            ? "No personal documents found"
+            : "No collaborative documents found"}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {filter === "all"
+            ? "Create your first document!"
+            : `Try switching to a different filter or create a new ${filter} document.`}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="grid gap-4">
       {documents?.map((doc) => (
-        <DocumentCard key={doc.id} document={doc} onOpen={onOpenDocument} />
+        <DocumentCard
+          key={doc.id}
+          document={doc}
+          onOpen={onOpenDocument}
+          filter={filter}
+        />
       ))}
     </div>
   );
