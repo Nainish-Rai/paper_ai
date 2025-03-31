@@ -24,8 +24,9 @@ const DocumentCard = memo(
       }
     );
 
-    function formatTimeAgo(date: Date) {
-      const diff = Date.now() - date.getTime();
+    function formatTimeAgo(date: Date | string) {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      const diff = Date.now() - dateObj.getTime();
       const minutes = Math.floor(diff / 60000);
 
       if (minutes < 1) return "Just now";
