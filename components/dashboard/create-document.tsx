@@ -24,8 +24,12 @@ import {
   Target,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { documentTemplates } from "@/lib/templates/documentTemplates";
+import { useTemplates } from "@/lib/hooks/useTemplates";
 import { cn } from "@/lib/utils";
+import { Template } from "@prisma/client";
+import { DefaultTemplate } from "@/lib/templates/documentTemplates";
+
+type TemplateType = Template | DefaultTemplate;
 
 export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -33,7 +37,10 @@ export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const router = useRouter();
   const { toast } = useToast();
-  const { createDocument, isLoading } = useDocumentStore();
+  const { createDocument, isLoading: isCreating } = useDocumentStore();
+  const { templates, isLoading: isLoadingTemplates } = useTemplates();
+
+  const isLoading = isCreating || isLoadingTemplates;
 
   const handleCreate = async () => {
     if (!title.trim()) {
@@ -69,10 +76,22 @@ export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
     }
   };
 
-  const templateIcons: Record<string, any> = {
-    file: FileText,
-    "clipboard-list": ClipboardList,
-    target: Target,
+  const getTemplateIcon = (template: TemplateType) => {
+    if ("id" in template) {
+      // For DB templates, use a default icon based on category
+      const category = template.categories[0]?.toLowerCase() || "";
+      switch (category) {
+        case "business":
+          return ClipboardList;
+        case "notes":
+          return Target;
+        default:
+          return FileText;
+      }
+    } else {
+      // For default templates
+      return FileText;
+    }
   };
 
   return (
@@ -124,32 +143,46 @@ export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
           </div>
           <div className="grid gap-2">
             <Label>Template</Label>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {documentTemplates.map((template) => {
-                const Icon = templateIcons[template.icon];
-                return (
-                  <div
-                    key={template.id}
-                    className={cn(
-                      "flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-muted/50",
-                      selectedTemplate === template.id
-                        ? "border-primary bg-primary/5"
-                        : "border-muted"
-                    )}
-                    onClick={() => setSelectedTemplate(template.id)}
-                  >
-                    <Icon className="mb-2 h-6 w-6" />
-                    <div className="text-center">
-                      <p className="font-medium leading-none">
-                        {template.name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {template.description}
-                      </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 relative min-h-[200px]">
+              {isLoadingTemplates ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : templates && templates.length > 0 ? (
+                templates.map((template: TemplateType) => {
+                  const templateId =
+                    "id" in template
+                      ? template.id
+                      : template.name.toLowerCase();
+                  const Icon = getTemplateIcon(template);
+                  return (
+                    <div
+                      key={templateId}
+                      className={cn(
+                        "flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-muted/50",
+                        selectedTemplate === templateId
+                          ? "border-primary bg-primary/5"
+                          : "border-muted"
+                      )}
+                      onClick={() => setSelectedTemplate(templateId)}
+                    >
+                      <Icon className="mb-2 h-6 w-6" />
+                      <div className="text-center">
+                        <p className="font-medium leading-none">
+                          {template.name}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {template.description || "No description"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="col-span-3 text-center text-muted-foreground">
+                  No templates available
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { Document } from "@prisma/client";
 import { DefaultBlockSchema, PartialBlock } from "@blocknote/core";
-import { documentTemplates } from "../templates/documentTemplates";
+import { DefaultTemplate } from "../templates/documentTemplates";
+import { Template } from "@prisma/client";
+import { markdownToBlocks } from "../utils/markdownToBlocks";
+
+type TemplateType = Template | DefaultTemplate;
 
 interface DocumentState {
   documents: Document[];
@@ -36,23 +40,35 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   ) => {
     try {
       set({ isLoading: true, error: null });
-      const initialContent = templateId
-        ? JSON.stringify(
-            documentTemplates.find((t) => t.id === templateId)?.content || []
-          )
-        : JSON.stringify([
-            {
-              type: "paragraph",
-              content: [{ type: "text", text: "", styles: {} }],
-            },
-          ]);
 
+      // Get content from template if specified
+      let content = JSON.stringify([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "", styles: {} }],
+        },
+      ]);
+
+      if (templateId && templateId !== "blank") {
+        const templateResponse = await fetch(`/api/templates/${templateId}`);
+        if (templateResponse.ok) {
+          const template = await templateResponse.json();
+          const blocks = markdownToBlocks(template.content);
+          content = JSON.stringify(blocks);
+        }
+      }
+
+      // Create document with content
       const response = await fetch("/api/documents/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, shared, content: initialContent }),
+        body: JSON.stringify({
+          title,
+          shared,
+          content,
+        }),
       });
 
       if (!response.ok) {

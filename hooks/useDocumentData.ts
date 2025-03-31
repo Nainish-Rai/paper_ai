@@ -5,11 +5,6 @@ import { useEditorContext } from "@/components/editor/EditorProvider";
 import { useAuth } from "@/lib/auth/provider";
 import { useCollaborationUser } from "@/hooks/useCollaborationUser";
 
-// Default empty block for the editor if no content is available
-const DEFAULT_CONTENT = [
-  { type: "paragraph", content: [{ type: "text", text: "Hello" }] },
-];
-
 export function useDocumentData(documentId: string) {
   const { doc, provider } = useEditorContext();
   const { user } = useAuth();
@@ -17,16 +12,14 @@ export function useDocumentData(documentId: string) {
 
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [initialContent, setInitialContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // Fetch initial content from API
+  // Verify document access
   useEffect(() => {
-    const loadContent = async () => {
+    const checkAccess = async () => {
       try {
         const response = await fetch(`/api/documents/${documentId}`);
-
         if (!response.ok) {
           if (response.status === 403) {
             setAccessDenied(true);
@@ -34,42 +27,42 @@ export function useDocumentData(documentId: string) {
           }
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
-
-        const data = await response.json();
-
-        if (data.content) {
-          try {
-            const parsedContent = JSON.parse(data.content);
-            // Ensure content is an array and not empty
-            if (Array.isArray(parsedContent) && parsedContent.length > 0) {
-              setInitialContent(parsedContent);
-            } else {
-              console.warn(
-                "Content is empty or not an array, using default content"
-              );
-              setInitialContent(DEFAULT_CONTENT);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse API content:", parseError);
-            setInitialContent(DEFAULT_CONTENT);
-          }
-        } else {
-          // No content available, use default
-          setInitialContent(DEFAULT_CONTENT);
-        }
       } catch (error) {
         console.error("Failed to fetch API content:", error);
-        setError("Failed to load document content");
-        setInitialContent(DEFAULT_CONTENT);
+        setError("Failed to load document");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadContent();
+    checkAccess();
   }, [documentId]);
 
-  // Create the editor only when initial content is fully loaded
+  // Listen for document initialization
+  useEffect(() => {
+    if (!isLoading && !error && !accessDenied) {
+      const handleMessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "init_content") {
+            // Initialize the Yjs document fragment directly
+            const fragment = doc.getXmlFragment("document-store");
+            doc.transact(() => {
+              fragment.delete(0, fragment.length);
+              fragment.push([data.content]);
+            });
+          }
+        } catch (error) {
+          console.error("Error processing message:", error);
+        }
+      };
+
+      provider.on("message", handleMessage);
+      return () => provider.off("message", handleMessage);
+    }
+  }, [isLoading, error, accessDenied, doc, provider]);
+
+  // Create the editor with collaboration enabled
   const editor = useCreateBlockNote({
     collaboration: {
       provider,
@@ -133,7 +126,6 @@ export function useDocumentData(documentId: string) {
     isLoading,
     error,
     accessDenied,
-    initialContent,
     editor,
   };
 }

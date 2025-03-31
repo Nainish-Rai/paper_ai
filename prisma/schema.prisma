@@ -23,6 +23,7 @@ model User {
   documents     Document[]
   accounts      Account[]
   sessions      Session[]
+  templates     Template[] // Added relation to templates
 
   @@map("user")
 }
@@ -42,14 +43,31 @@ model Session {
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?  @db.Text
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  shared    Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
+  id         String    @id @default(cuid())
+  title      String
+  content    String?   @db.Text
+  authorId   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  shared     Boolean   @default(false)
+  author     User      @relation(fields: [authorId], references: [id])
+}
+
+model Template {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  content     String     @db.Text
+  version     Int        @default(1)
+  authorId    String
+  author      User       @relation(fields: [authorId], references: [id])
+  categories  String[]   // Array of category tags
+  published   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([authorId])
+  @@map("template")
 }
 
 model Account {
