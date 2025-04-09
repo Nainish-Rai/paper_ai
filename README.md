@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Paper AI
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+![Logo](https://via.placeholder.com/150x150?text=Paper+AI)
+
+[![Next.js](https://img.shields.io/badge/Next.js-15.0.0-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?logo=react)](https://reactjs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-5.10.2-2D3748?logo=prisma)](https://www.prisma.io/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+**A collaborative real-time document editing platform with advanced AI capabilities**
+
+</div>
+
+## ✨ Features
+
+- **Real-time Collaboration**: Multiple users can edit documents simultaneously with live presence indicators
+- **Smart AI Writing Assistant**: Grammar checking, style suggestions, tone analysis, and writing enhancement
+- **Document Analysis**: Content summarization, key points extraction, topic analysis, and readability scoring
+- **Rich Content Generation**: Template system, content expansion, structure suggestions, and format recommendations
+- **Rich Text Editing**: Powerful editor with markdown support, real-time cursors, and collaborative features
+- **Document Export/Import**: Support for DOCX and PDF formats
+- **Performance Monitoring**: Real-time metrics dashboard for system health and optimization
+
+## 🚀 Tech Stack
+
+- **Frontend**: React 19, Next.js 15, Tailwind CSS, Shadcn UI
+- **Backend**: Next.js API routes, Prisma ORM
+- **Database**: PostgreSQL
+- **Authentication**: Better Auth library
+- **Real-time Features**: PartyKit
+- **Editor**: BlockNote
+- **AI**: OpenAI and Llama 3.1 8B Instant (via Groq API)
+- **State Management**: Zustand, TanStack Query
+- **Monitoring**: Custom metrics dashboard with Redis
+
+## 📋 Prerequisites
+
+- Node.js 18+ and pnpm
+- PostgreSQL database
+- OpenAI API key and/or Groq API key
+- Redis instance (for metrics)
+
+## 🔧 Installation
+
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/paper_ai.git
+cd paper_ai
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+3. Create a `.env` file based on `.env.example`:
 
-## Learn More
+```bash
+copy .env.example .env
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+4. Update the `.env` file with your configuration:
