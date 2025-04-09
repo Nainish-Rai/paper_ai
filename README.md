@@ -14,6 +14,10 @@
 
 </div>
 
+![image](https://github.com/user-attachments/assets/e927d9f4-9e54-4f2b-ae19-a7cdc3869587)
+![image](https://github.com/user-attachments/assets/712a610c-90a2-44ad-afc9-833feaec6787)
+
+
 ## ✨ Features
 
 - **Real-time Collaboration**: Multiple users can edit documents simultaneously with live presence indicators
