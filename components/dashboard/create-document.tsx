@@ -31,14 +31,36 @@ import { DefaultTemplate } from "@/lib/templates/documentTemplates";
 
 type TemplateType = Template | DefaultTemplate;
 
-export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
-  const [open, setOpen] = useState(false);
+interface CreateDocumentProps {
+  isHorizontal?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isHidden?: boolean;
+}
+
+export function CreateDocument({
+  isHorizontal,
+  isOpen: controlledOpen,
+  onClose,
+  isHidden,
+}: CreateDocumentProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const router = useRouter();
   const { toast } = useToast();
   const { createDocument, isLoading: isCreating } = useDocumentStore();
   const { templates, isLoading: isLoadingTemplates } = useTemplates();
+
+  // Use controlled or uncontrolled open state
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (controlledOpen !== undefined && onClose) {
+      if (!value) onClose();
+    } else {
+      setUncontrolledOpen(value);
+    }
+  };
 
   const isLoading = isCreating || isLoadingTemplates;
 
@@ -105,19 +127,22 @@ export function CreateDocument({ isHorizontal }: { isHorizontal?: boolean }) {
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className={
-            isHorizontal
-              ? "flex w-full text-left gap-2"
-              : "flex h-full w-full flex-col items-start rounded-lg border p-4 text-left transition-colors hover:bg-muted/50"
-          }
-        >
-          <PlusCircle className="h-5 w-5 mb-2 text-muted-foreground" />
-          <span className="text-sm font-medium">New Document</span>
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger className={isHidden ? "hidden" : ""} asChild>
+          <Button
+            variant="outline"
+            className={
+              isHorizontal
+                ? "flex w-full text-left gap-2"
+                : "flex h-full w-full flex-col items-start rounded-lg border p-4 text-left transition-colors hover:bg-muted/50" +
+                  (isHidden ? " hidden" : "")
+            }
+          >
+            <PlusCircle className="h-5 w-5 mb-2 text-muted-foreground" />
+            <span className="text-sm font-medium">New Document</span>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Document</DialogTitle>

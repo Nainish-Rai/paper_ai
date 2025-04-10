@@ -20,10 +20,19 @@ export async function PATCH(
 
     const { content } = await request.json();
 
-    // Find document
+    // Find document and check permissions
     const document = await prisma.document.findUnique({
       where: {
         id: (await params).documentId,
+      },
+      include: {
+        permissions: {
+          where: {
+            userId: session.user.id,
+            // Only editors and owners can update content
+            role: "editor",
+          },
+        },
       },
     });
 
@@ -31,10 +40,11 @@ export async function PATCH(
       return new NextResponse("Document not found", { status: 404 });
     }
 
-    // Check if user is the author or if document is shared
+    // Check if user is the author, or has explicit editor permission, or it's a shared doc
     const hasAccess =
       document.authorId === session.user.id || // Author can always access
-      document.shared; // Anyone can access if document is shared
+      document.permissions.length > 0 || // User has explicit editor permission
+      document.shared; // Anyone can edit if document is publicly shared
 
     if (!hasAccess) {
       return new NextResponse("Access denied", { status: 403 });

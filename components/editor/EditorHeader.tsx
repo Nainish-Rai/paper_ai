@@ -23,6 +23,10 @@ import {
   Check,
   Download,
   PenLine,
+  Link,
+  Globe,
+  UserPlus,
+  Loader,
 } from "lucide-react";
 import { useDocument } from "@/lib/hooks/useDocument";
 import { useShareDocument } from "@/lib/hooks/useShareDocument";
@@ -47,6 +51,7 @@ import {
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@/components/dashboard/user-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import InviteDialog from "../blocks/invite-dialog";
 
 interface EditorHeaderProps {
   userId?: string;
@@ -72,6 +77,7 @@ export function EditorHeader({
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isAIToolbarOpen, setIsAIToolbarOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   // Check if current user is the owner
   const isOwner = user?.id === document?.authorId;
@@ -112,10 +118,15 @@ export function EditorHeader({
   // Determine if the document is shared for conditional UI
   const isShared = document?.shared || false;
 
+  // Toggle document sharing
+  const handleShareToggle = useCallback(() => {
+    setIsInviteDialogOpen(true);
+  }, []);
+
   // If not a document page, render dashboard header
   if (!isDocumentPage) {
     return (
-      <div className="w-full flex items-center">
+      <div className="w-full flex items-center px-6">
         <div className="flex items-center justify-between w-full">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Home</h1>
@@ -133,32 +144,6 @@ export function EditorHeader({
   return (
     <div className="w-full bg-background border-b border-border sticky top-0 z-30 transition-all duration-200">
       <div className="w-full px-4 py-2 mx-auto flex flex-col gap-y-0.5">
-        {/* Top row with breadcrumb-like navigation */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 gap-1.5 px-2 text-xs font-medium hover:bg-accent rounded-md"
-            onClick={() => router.push("/dashboard")}
-          >
-            <LayoutGrid className="h-3 w-3" />
-            All pages
-          </Button>
-          <span className="text-xs">/</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 gap-1.5 px-2 text-xs font-medium hover:bg-accent rounded-md"
-          >
-            {isShared ? (
-              <Users className="h-3 w-3" />
-            ) : (
-              <Lock className="h-3 w-3" />
-            )}
-            {isShared ? "Shared" : "Private"}
-          </Button>
-        </div>
-
         {/* Main header content */}
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0 flex items-center">
@@ -205,34 +190,31 @@ export function EditorHeader({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={document?.shared ? "ghost" : "outline"}
-                      size={document?.shared ? "icon" : "sm"}
-                      className={cn(
-                        document?.shared
-                          ? "h-8 w-8 rounded-full"
-                          : "h-8 gap-1.5 text-xs rounded-md"
-                      )}
-                      onClick={() =>
-                        document?.shared ? handleCopyLink() : shareDocument()
-                      }
+                      variant={document?.shared ? "outline" : "default"}
+                      size="sm"
+                      className={cn("h-8 gap-1.5 text-xs rounded-md")}
+                      onClick={handleShareToggle}
                       disabled={isSharing}
                     >
-                      {document?.shared ? (
-                        copied ? (
-                          <Check className="h-3.5 w-3.5" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )
+                      {isSharing ? (
+                        <Loader className="h-3.5 w-3.5 animate-spin" />
+                      ) : document?.shared ? (
+                        <>
+                          <Users className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Share</span>
+                        </>
                       ) : (
                         <>
-                          <Share2 className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Share</span>
+                          <Lock className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Private</span>
                         </>
                       )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    <p>{document?.shared ? "Copy link" : "Share"}</p>
+                    <p>
+                      {document?.shared ? "Manage sharing" : "Share document"}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -366,6 +348,25 @@ export function EditorHeader({
                     Duplicate
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {isOwner && document?.shared && (
+                    <>
+                      <DropdownMenuItem
+                        className="text-sm"
+                        onClick={handleCopyLink}
+                      >
+                        <Link className="w-3.5 h-3.5 mr-2" />
+                        Copy link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-sm"
+                        onClick={() => setIsInviteDialogOpen(true)}
+                      >
+                        <UserPlus className="w-3.5 h-3.5 mr-2" />
+                        Invite users
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem className="text-sm">
                     <Settings className="w-3.5 h-3.5 mr-2" />
                     Page settings
@@ -382,12 +383,6 @@ export function EditorHeader({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-
-            {/* Theme & User
-            <div className="ml-1 flex items-center gap-1 pl-1 border-l border-border">
-              <ModeToggle />
-              {user && <UserButton user={user} />}
-            </div> */}
           </div>
         </div>
       </div>
@@ -404,6 +399,13 @@ export function EditorHeader({
           </div>
         </div>
       )}
+
+      {/* Invite Dialog */}
+      <InviteDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+        documentId={documentId || ""}
+      />
     </div>
   );
 }
