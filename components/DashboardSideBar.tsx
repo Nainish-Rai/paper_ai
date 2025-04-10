@@ -17,6 +17,10 @@ import {
   Trash,
   Calendar,
   Clock,
+  Star,
+  FileText,
+  PenSquare,
+  LayoutGrid,
 } from "lucide-react";
 import { HomeIcon } from "./ui/home";
 import { useCallback, useState, useEffect } from "react";
@@ -38,19 +42,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
 
-// Fake document data for demonstration
-function useFakeDocuments() {
+// Workspace document data with query
+function useDocuments() {
   return useQuery({
     queryKey: ["documents"],
     queryFn: async () => {
-      // In a real app, this would be an API call
-      return [
-        { id: "1", title: "Getting Started", emoji: "🚀" },
-        { id: "2", title: "Project Roadmap", emoji: "🗺️" },
-        { id: "3", title: "Meeting Notes", emoji: "📝" },
-        { id: "4", title: "Ideas", emoji: "💡" },
-      ];
+      try {
+        const response = await fetch("/api/documents/all");
+        if (!response.ok) throw new Error("Failed to fetch documents");
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+        return [];
+      }
     },
     initialData: [],
   });
@@ -63,18 +69,24 @@ function DashboardSideBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  const { data: documents } = useFakeDocuments();
+  const { data: documents, isLoading: documentsLoading } = useDocuments();
+
+  // State for search
+  const [searchValue, setSearchValue] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // Workspace state
   const [workspaceOpen, setWorkspaceOpen] = useState(true);
   const [favoritesOpen, setFavoritesOpen] = useState(true);
   const [privateOpen, setPrivateOpen] = useState(true);
+  const [sharedOpen, setSharedOpen] = useState(true);
+  const [trashOpen, setTrashOpen] = useState(false);
 
   // Keyboard shortcuts
   useHotkeys(
     "alt+s",
     () => {
-      document.getElementById("search-button")?.focus();
+      setIsSearching(true);
     },
     { enableOnFormTags: ["INPUT"] }
   );
@@ -113,26 +125,20 @@ function DashboardSideBar() {
     }
   }, [signOut, router, toast]);
 
-  const handleSearch = () => {
-    toast({
-      description: "Search functionality coming soon!",
-    });
+  // Handle search functionality
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsSearching(false);
+    }
   };
 
   const handleNewPage = () => {
-    toast({
-      title: "Creating a new page",
-      description: "Your new page is being created...",
-    });
-    // In a real app, this would create a page then navigate to it
-    setTimeout(() => {
-      router.push("/dashboard/documents/new");
-    }, 500);
+    router.push("/dashboard/documents/new");
   };
 
   // Check if current path is active
   const isActive = (path: string) => {
-    return pathname?.startsWith(path);
+    return pathname === path;
   };
 
   // Wrap buttons with tooltips when collapsed
@@ -160,7 +166,7 @@ function DashboardSideBar() {
         id={id}
         variant={variant}
         className={cn(
-          "justify-start text-sm transition-all w-full",
+          "justify-start text-sm py-1.5 h-auto",
           !isOpen ? "justify-center px-2" : "",
           variant === "destructive"
             ? "hover:bg-destructive/90 hover:text-destructive-foreground"
@@ -204,6 +210,7 @@ function DashboardSideBar() {
   // Sidebar section component
   const SidebarSection = ({
     title,
+    icon,
     isOpenState,
     onToggle,
     children,
@@ -211,6 +218,7 @@ function DashboardSideBar() {
     showToggle = true,
   }: {
     title: string;
+    icon?: React.ReactNode;
     isOpenState: boolean;
     onToggle: () => void;
     children: React.ReactNode;
@@ -220,22 +228,23 @@ function DashboardSideBar() {
     if (!isOpen) return null; // Don't show sections when sidebar is collapsed
 
     return (
-      <div className="mb-2">
+      <div className="mb-1">
         <div
-          className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+          className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground hover:text-foreground rounded-md group"
           onClick={showToggle ? onToggle : undefined}
           style={{ cursor: showToggle ? "pointer" : "default" }}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            {icon && <span className="text-muted-foreground">{icon}</span>}
             {showToggle && (
               <ChevronDown
                 className={cn(
-                  "h-3.5 w-3.5 transition-transform",
+                  "h-3 w-3 transition-transform",
                   !isOpenState && "-rotate-90"
                 )}
               />
             )}
-            <span className="font-medium uppercase tracking-wider">
+            <span className="font-medium uppercase tracking-wide text-xs">
               {title}
             </span>
           </div>
@@ -271,7 +280,7 @@ function DashboardSideBar() {
     const isDocActive = pathname === `/dashboard/documents/${id}`;
 
     return (
-      <div className="group relative px-2">
+      <div className="group relative px-1">
         <Button
           variant="ghost"
           className={cn(
@@ -280,23 +289,33 @@ function DashboardSideBar() {
           )}
           onClick={() => router.push(`/dashboard/documents/${id}`)}
         >
-          <div className="mr-2 w-4 text-center">{emoji || "📄"}</div>
-          <span className="truncate">{title}</span>
+          <div className="mr-2 w-5 text-center">{emoji || "📄"}</div>
+          <span className="truncate text-sm">{title}</span>
         </Button>
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6">
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Rename</DropdownMenuItem>
-              <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem>Share</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem className="flex items-center">
+                <PenSquare className="h-3.5 w-3.5 mr-2" />
+                <span>Rename</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center">
+                <Star className="h-3.5 w-3.5 mr-2" />
+                <span>Favorite</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center">
+                <FileText className="h-3.5 w-3.5 mr-2" />
+                <span>Duplicate</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
-                Delete
+              <DropdownMenuItem className="text-red-600 flex items-center">
+                <Trash className="h-3.5 w-3.5 mr-2" />
+                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -305,10 +324,19 @@ function DashboardSideBar() {
     );
   };
 
+  // Filtered documents based on search
+  const filteredDocuments = documents?.filter(
+    (doc: any) =>
+      !searchValue ||
+      doc.title.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
+  const recentDocuments = documents?.slice(0, 3);
+
   return (
     <nav
       className={cn(
-        "border-r bg-background relative group/sidebar transition-all duration-300 ease-in-out flex flex-col",
+        "border-r bg-background relative group/sidebar transition-all duration-300 ease-in-out flex flex-col h-screen",
         !isOpen ? "w-[70px]" : "w-[260px]"
       )}
       aria-label="Dashboard sidebar"
@@ -338,11 +366,11 @@ function DashboardSideBar() {
         </Tooltip>
       </TooltipProvider>
 
-      <div className="flex flex-col h-full p-2 gap-1 overflow-y-auto custom-scrollbar">
+      <div className="flex flex-col h-full px-2 py-3 gap-1 overflow-y-auto custom-scrollbar">
         {/* User section / Workspace header */}
         <div
           className={cn(
-            "flex items-center gap-2 p-2 mb-2",
+            "flex items-center gap-2 px-2 py-1 mb-4 hover:bg-accent/40 rounded-md cursor-pointer",
             !isOpen ? "justify-center" : "justify-start"
           )}
         >
@@ -371,45 +399,75 @@ function DashboardSideBar() {
           )}
         </div>
 
-        {/* Quick actions */}
-        <div className="px-1 mb-2">
-          <div
-            className={cn(
-              "flex gap-1",
-              !isOpen ? "flex-col items-center" : "flex-col items-stretch"
+        {/* Search input */}
+        {isOpen && (isSearching || searchValue) ? (
+          <div className="px-1 mb-2 relative">
+            <Input
+              autoFocus
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search pages..."
+              className="h-8 text-sm"
+              onBlur={() => !searchValue && setIsSearching(false)}
+            />
+            {searchValue && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 absolute right-3 top-1.5"
+                onClick={() => setSearchValue("")}
+              >
+                <ChevronLeft className="h-3 w-3 rotate-90" />
+              </Button>
             )}
-          >
-            {/* Search Button */}
-            <TooltipButton
-              id="search-button"
-              icon={<Search className="h-4 w-4 mr-2" />}
-              label="Search"
-              shortcut="Alt+S"
-              onClick={handleSearch}
-              active={false}
-            />
-
-            {/* Quick Nav Buttons */}
-            <TooltipButton
-              icon={<HomeIcon className="h-4 w-4 mr-2" />}
-              label="Home"
-              onClick={() => router.push("/dashboard")}
-              active={pathname === "/dashboard"}
-            />
-            <TooltipButton
-              icon={<Clock className="h-4 w-4 mr-2" />}
-              label="Recent"
-              onClick={() => router.push("/dashboard/recent")}
-              active={pathname === "/dashboard/recent"}
-            />
-            <TooltipButton
-              icon={<Calendar className="h-4 w-4 mr-2" />}
-              label="Calendar"
-              onClick={() => router.push("/dashboard/calendar")}
-              active={pathname === "/dashboard/calendar"}
-            />
           </div>
-        </div>
+        ) : (
+          <div className="px-1 mb-2">
+            <div
+              className={cn(
+                "flex gap-1",
+                !isOpen ? "flex-col items-center" : "flex-col items-stretch"
+              )}
+            >
+              {/* Search Button */}
+              <TooltipButton
+                id="search-button"
+                icon={<Search className="h-4 w-4 mr-2" />}
+                label="Search"
+                shortcut="Alt+S"
+                onClick={() => setIsSearching(true)}
+                active={false}
+              />
+
+              {/* Quick Nav Buttons */}
+              <TooltipButton
+                icon={<HomeIcon className="h-4 w-4 mr-2" />}
+                label="Home"
+                onClick={() => router.push("/dashboard")}
+                active={isActive("/dashboard")}
+              />
+              <TooltipButton
+                icon={<Clock className="h-4 w-4 mr-2" />}
+                label="Recent"
+                onClick={() => router.push("/dashboard/recent")}
+                active={isActive("/dashboard/recent")}
+              />
+              <TooltipButton
+                icon={<Calendar className="h-4 w-4 mr-2" />}
+                label="Calendar"
+                onClick={() => router.push("/dashboard/calendar")}
+                active={isActive("/dashboard/calendar")}
+              />
+              <TooltipButton
+                icon={<LayoutGrid className="h-4 w-4 mr-2" />}
+                label="All Pages"
+                onClick={() => router.push("/dashboard/documents")}
+                active={isActive("/dashboard/documents")}
+              />
+            </div>
+          </div>
+        )}
 
         {/* New Page Button */}
         <div className="px-1 mb-4">
@@ -426,31 +484,101 @@ function DashboardSideBar() {
           </Button>
         </div>
 
-        {/* Workspace Pages */}
-        <SidebarSection
-          title="Favorites"
-          isOpenState={favoritesOpen}
-          onToggle={() => setFavoritesOpen(!favoritesOpen)}
-        >
-          <DocumentItem id="1" title="Getting Started" emoji="🚀" />
-          <DocumentItem id="2" title="Project Roadmap" emoji="🗺️" />
-        </SidebarSection>
+        {/* Document sections */}
+        {!documentsLoading ? (
+          <>
+            {/* Favorites section */}
+            <SidebarSection
+              title="Favorites"
+              icon={<Star className="h-3.5 w-3.5" />}
+              isOpenState={favoritesOpen}
+              onToggle={() => setFavoritesOpen(!favoritesOpen)}
+            >
+              <DocumentItem id="1" title="Getting Started Guide" emoji="🚀" />
+              <DocumentItem id="2" title="Project Roadmap" emoji="🗺️" />
+            </SidebarSection>
 
-        <SidebarSection
-          title="Private"
-          isOpenState={privateOpen}
-          onToggle={() => setPrivateOpen(!privateOpen)}
-          addAction={handleNewPage}
-        >
-          {documents.map((doc: any) => (
-            <DocumentItem
-              key={doc.id}
-              id={doc.id}
-              title={doc.title}
-              emoji={doc.emoji}
-            />
-          ))}
-        </SidebarSection>
+            {/* Private section */}
+            <SidebarSection
+              title="Private"
+              icon={<FileText className="h-3.5 w-3.5" />}
+              isOpenState={privateOpen}
+              onToggle={() => setPrivateOpen(!privateOpen)}
+              addAction={handleNewPage}
+            >
+              {searchValue ? (
+                filteredDocuments && filteredDocuments.length > 0 ? (
+                  filteredDocuments.map((doc: any) => (
+                    <DocumentItem
+                      key={doc.id}
+                      id={doc.id}
+                      title={doc.title}
+                      emoji={doc.emoji}
+                    />
+                  ))
+                ) : (
+                  <div className="px-2 py-1 text-xs text-muted-foreground">
+                    No results match &qout;{searchValue}&qout;
+                  </div>
+                )
+              ) : documents && documents.length > 0 ? (
+                documents.map((doc: any) => (
+                  <DocumentItem
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.title}
+                    emoji={doc.emoji}
+                  />
+                ))
+              ) : (
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  No pages yet
+                </div>
+              )}
+            </SidebarSection>
+
+            {/* Shared section */}
+            <SidebarSection
+              title="Shared"
+              icon={<FileText className="h-3.5 w-3.5" />}
+              isOpenState={sharedOpen}
+              onToggle={() => setSharedOpen(!sharedOpen)}
+            >
+              <div className="px-2 py-1 text-xs text-muted-foreground">
+                No shared pages
+              </div>
+            </SidebarSection>
+
+            {/* Trash section */}
+            <SidebarSection
+              title="Trash"
+              icon={<Trash className="h-3.5 w-3.5" />}
+              isOpenState={trashOpen}
+              onToggle={() => setTrashOpen(!trashOpen)}
+            >
+              <div className="px-2 py-1 text-xs text-muted-foreground">
+                Trash is empty
+              </div>
+            </SidebarSection>
+          </>
+        ) : (
+          // Skeleton loaders for sections
+          isOpen && (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="px-2">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  {[...Array(i + 1)].map((_, j) => (
+                    <div key={j} className="flex items-center gap-2 mb-2">
+                      <Skeleton className="h-5 w-5 rounded" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )
+        )}
 
         {/* Divider before settings */}
         {isOpen && <div className="h-px bg-border my-4" />}
@@ -461,12 +589,12 @@ function DashboardSideBar() {
             icon={<Settings className="h-4 w-4 mr-2" />}
             label="Settings"
             onClick={() => router.push("/dashboard/settings")}
-            active={pathname === "/dashboard/settings"}
+            active={isActive("/dashboard/settings")}
           />
 
           {/* Logout */}
           <TooltipButton
-            variant={!isOpen ? "ghost" : "ghost"}
+            variant="ghost"
             icon={<LogOut className="h-4 w-4 mr-2" />}
             label="Sign out"
             onClick={handleLogout}

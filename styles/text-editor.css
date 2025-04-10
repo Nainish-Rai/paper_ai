@@ -73,3 +73,173 @@
   padding: 2px 6px;
   pointer-events: none;
 }
+
+/* Notion-style editor customizations */
+.notion-editor {
+  /* Base typography */
+  --notion-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif, "Apple Color Emoji";
+  font-family: var(--notion-font-family);
+  color: var(--foreground);
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Block styling */
+.notion-editor [data-editor-block] {
+  margin: 0.25rem 0;
+  padding: 0.25rem 0;
+  transition: background-color 100ms ease-in;
+  border-radius: 3px;
+}
+
+.notion-editor [data-editor-block]:hover {
+  background-color: var(--accent-alt, rgba(55, 53, 47, 0.03));
+}
+
+.dark .notion-editor [data-editor-block]:hover {
+  background-color: var(--accent-alt, rgba(255, 255, 255, 0.03));
+}
+
+/* Heading styles */
+.notion-editor h1 {
+  font-weight: 600;
+  font-size: 1.875rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.notion-editor h2 {
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.notion-editor h3 {
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Paragraph styles */
+.notion-editor p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0.25rem 0;
+}
+
+/* List styles */
+.notion-editor ul,
+.notion-editor ol {
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+}
+
+.notion-editor li {
+  margin-bottom: 0.25rem;
+}
+
+.notion-editor li p {
+  margin: 0;
+}
+
+/* Blockquote styling */
+.notion-editor blockquote {
+  margin: 0.5rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid rgba(55, 53, 47, 0.2);
+  color: rgba(55, 53, 47, 0.7);
+}
+
+.dark .notion-editor blockquote {
+  border-left-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Table styling */
+.notion-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.95em;
+}
+
+.notion-editor td,
+.notion-editor th {
+  padding: 0.5rem;
+  border: 1px solid rgba(55, 53, 47, 0.15);
+}
+
+.dark .notion-editor td,
+.dark .notion-editor th {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.notion-editor th {
+  background-color: rgba(55, 53, 47, 0.04);
+  font-weight: 500;
+}
+
+.dark .notion-editor th {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Link styling */
+.notion-editor a {
+  color: #0969da;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 250ms;
+}
+
+.dark .notion-editor a {
+  color: #539bf5;
+}
+
+.notion-editor a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Selection styling */
+.notion-editor ::selection {
+  background-color: rgba(35, 131, 226, 0.2);
+}
+
+.dark .notion-editor ::selection {
+  background-color: rgba(35, 131, 226, 0.3);
+}
+
+/* Add smooth fade in for editor */
+.notion-editor {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+
+.notion-editor.loading {
+  opacity: 0;
+}
+
+/* Custom toolbar styling */
+.notion-editor-toolbar {
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .notion-editor-toolbar {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom focus ring */
+.notion-editor [data-editor-block].is-selected {
+  background-color: rgba(35, 131, 226, 0.1);
+}
+
+.dark .notion-editor [data-editor-block].is-selected {
+  background-color: rgba(35, 131, 226, 0.15);
+}

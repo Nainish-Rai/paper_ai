@@ -2,7 +2,7 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import DashboardSideBar from "@/components/DashboardSideBar";
-import { DashboardHeader } from "@/components/dashboard/header";
+import { EditorHeader } from "@/components/editor/EditorHeader";
 import { useAuth } from "@/lib/auth/provider";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -41,8 +41,14 @@ export default function DashboardLayout({
               <Skeleton className="h-8 w-48" />
             </div>
           ) : (
-            <div className="px-6 h-full flex items-center">
-              {user && <DashboardHeader user={user} documentId={documentId} />}
+            <div className=" h-full flex items-center">
+              {user && (
+                <EditorHeader
+                  userId={user.id}
+                  documentId={documentId}
+                  isDocumentPage={isDocumentPage}
+                />
+              )}
             </div>
           )}
         </div>
