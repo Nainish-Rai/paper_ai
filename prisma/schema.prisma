@@ -9,27 +9,37 @@ datasource db {
 }
 
 model User {
-  id            String     @id
-  github_id     Int?       @unique
-  google_id     String?    @unique
+  id            String                @id @default(cuid())
+  github_id     Int?                  @unique
+  google_id     String?               @unique
   name          String?
-  username      String?    @unique
-  email         String     @unique
+  username      String?               @unique
+  email         String                @unique
   image         String?
   password      String?
-  emailVerified Boolean
-  createdAt     DateTime
-  updatedAt     DateTime
-  documents     Document[]
+  emailVerified Boolean               @default(false)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  // Document relations
+  ownedDocuments      Document[]           // Documents created by user
+  documentPermissions DocumentPermission[] // User permissions for documents
+
+  // Auth relations
   accounts      Account[]
   sessions      Session[]
-  templates     Template[] // Added relation to templates
+
+  // Template relations
+  templates     Template[]  // Templates created by user
+
+  // Room relations (if used)
+  ownedRooms    Room[]      @relation("RoomOwner")
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   token     String   @unique
   expiresAt DateTime
@@ -37,65 +47,108 @@ model Session {
   updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("session")
 }
 
-model Document {
-  id         String    @id @default(cuid())
-  title      String
-  content    String?   @db.Text
-  authorId   String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  shared     Boolean   @default(false)
-  author     User      @relation(fields: [authorId], references: [id])
-}
-
-model Template {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  content     String     @db.Text
-  version     Int        @default(1)
-  authorId    String
-  author      User       @relation(fields: [authorId], references: [id])
-  categories  String[]   // Array of category tags
-  published   Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([authorId])
-  @@map("template")
-}
-
 model Account {
-  id                    String    @id
+  id                    String    @id @default(cuid())
+  userId                String
   accountId             String
   providerId            String
-  userId                String
-  accessToken           String?
-  refreshToken          String?
-  idToken              String?
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
+  idToken               String?   @db.Text
   scope                 String?
-  password             String?
-  createdAt            DateTime
-  updatedAt            DateTime
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([providerId, accountId])
+  @@index([userId])
   @@map("account")
 }
 
 model Verification {
-  id         String    @id
+  id         String    @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
+  @@unique([identifier, value])
   @@map("verification")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  content     String?  @db.Text
+  shared      Boolean  @default(false)
+  roomId      String?
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  room        Room?    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id])
+  permissions DocumentPermission[]
+
+  @@index([authorId])
+  @@index([roomId])
+}
+
+// Document permissions for collaboration
+model DocumentPermission {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  role       String   // "viewer", "editor", "owner"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@index([documentId])
+  @@index([userId])
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  name      String
+  content   String?  @db.Text
+  users     String[]
+  owner     User     @relation("RoomOwner", fields: [ownerId], references: [id])
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Document relation
+  documents Document[]
+
+  @@index([ownerId])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  content     String   @db.Text
+  version     Int      @default(1)
+  authorId    String
+  categories  String[]
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
 }

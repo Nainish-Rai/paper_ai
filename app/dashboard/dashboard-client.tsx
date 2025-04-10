@@ -11,6 +11,7 @@ import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
 import { authClient } from "@/lib/auth/client";
 import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { CreateDocument } from "@/components/dashboard/create-document";
 import {
   Card,
   CardContent,
@@ -67,6 +68,7 @@ export function DashboardClient() {
     "updated"
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateDocumentOpen, setIsCreateDocumentOpen] = useState(false);
 
   // Use dependent queries to improve loading efficiency
   const { profile, isLoading: profileLoading } = useProfile();
@@ -92,7 +94,7 @@ export function DashboardClient() {
   };
 
   const handleCreateNewDoc = () => {
-    router.push("/dashboard/documents/new");
+    setIsCreateDocumentOpen(true);
   };
 
   // Redirect if no profile after load attempt
@@ -616,6 +618,13 @@ export function DashboardClient() {
           </div>
         </div>
       </div>
+
+      {/* Create Document Dialog */}
+      <CreateDocument
+        isHidden
+        isOpen={isCreateDocumentOpen}
+        onClose={() => setIsCreateDocumentOpen(false)}
+      />
     </>
   );
 }

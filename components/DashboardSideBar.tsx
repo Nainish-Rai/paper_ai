@@ -34,6 +34,7 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CreateDocument } from "@/components/dashboard/create-document";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +71,7 @@ function DashboardSideBar() {
   const pathname = usePathname();
   const { toast } = useToast();
   const { data: documents, isLoading: documentsLoading } = useDocuments();
+  const [isCreateDocumentOpen, setIsCreateDocumentOpen] = useState(false);
 
   // State for search
   const [searchValue, setSearchValue] = useState("");
@@ -96,7 +98,7 @@ function DashboardSideBar() {
   });
 
   useHotkeys("alt+n", () => {
-    handleNewPage();
+    setIsCreateDocumentOpen(true);
   });
 
   const getInitials = (name: string | null | undefined) => {
@@ -133,7 +135,7 @@ function DashboardSideBar() {
   };
 
   const handleNewPage = () => {
-    router.push("/dashboard/documents/new");
+    setIsCreateDocumentOpen(true);
   };
 
   // Check if current path is active
@@ -518,7 +520,7 @@ function DashboardSideBar() {
                   ))
                 ) : (
                   <div className="px-2 py-1 text-xs text-muted-foreground">
-                    No results match &qout;{searchValue}&qout;
+                    No results match &quot;{searchValue}&quot;
                   </div>
                 )
               ) : documents && documents.length > 0 ? (
@@ -580,7 +582,6 @@ function DashboardSideBar() {
           )
         )}
 
-        {/* Divider before settings */}
         {isOpen && <div className="h-px bg-border my-4" />}
 
         <div className="mt-auto pt-2">
@@ -602,6 +603,13 @@ function DashboardSideBar() {
           />
         </div>
       </div>
+
+      {/* Create Document Dialog */}
+      <CreateDocument
+        isHidden
+        isOpen={isCreateDocumentOpen}
+        onClose={() => setIsCreateDocumentOpen(false)}
+      />
     </nav>
   );
 }

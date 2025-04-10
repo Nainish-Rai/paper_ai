@@ -37,6 +37,11 @@ export async function GET(
             email: true,
           },
         },
+        permissions: {
+          where: {
+            userId: session.user.id,
+          },
+        },
       },
     });
 
@@ -50,7 +55,8 @@ export async function GET(
     // Check if user has access to the document
     const hasAccess =
       document.authorId === session.user.id || // Author can always access
-      document.shared; // Anyone can access if document is shared
+      document.shared || // Anyone can access if document is publicly shared
+      document.permissions.length > 0; // User has specific permission
 
     if (!hasAccess) {
       return NextResponse.json(
