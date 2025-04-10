@@ -15,7 +15,7 @@ export default async function Dashboard() {
       </Suspense>
 
       {/* AI Performance Analytics */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-6 lg:grid-cols-12">
+      {/* <div className="grid gap-4 grid-cols-1 md:grid-cols-6 lg:grid-cols-12">
         <Suspense fallback={<Skeleton className="h-[400px] col-span-3" />}>
           <AIPerformanceCard
             endpoint="grammar"
@@ -47,7 +47,7 @@ export default async function Dashboard() {
             description="Response times and success rates for AI completions"
           />
         </Suspense>
-      </div>
+      </div> */}
     </div>
   );
 }
