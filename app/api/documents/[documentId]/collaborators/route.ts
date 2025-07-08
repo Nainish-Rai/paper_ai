@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 // GET /api/documents/[documentId]/collaborators
 export async function GET(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -21,7 +21,7 @@ export async function GET(
 
     // Find the document
     const document = await prisma.document.findUnique({
-      where: { id: params.documentId },
+      where: { id: (await params).documentId },
       include: { author: true },
     });
 
@@ -44,7 +44,7 @@ export async function GET(
     // Get all permissions for this document
     const permissions = await prisma.documentPermission.findMany({
       where: {
-        documentId: params.documentId,
+        documentId: (await params).documentId,
       },
       include: {
         user: {

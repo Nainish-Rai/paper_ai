@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 // POST /api/documents/[documentId]/unshare
 export async function POST(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -21,7 +21,7 @@ export async function POST(
 
     // Find the document
     const document = await prisma.document.findUnique({
-      where: { id: params.documentId },
+      where: { id: (await params).documentId },
     });
 
     if (!document) {
@@ -41,7 +41,7 @@ export async function POST(
 
     // Check if there are any collaborators
     const collaborators = await prisma.documentPermission.findMany({
-      where: { documentId: params.documentId },
+      where: { documentId: (await params).documentId },
     });
 
     // If there are collaborators, we should warn the user but still allow unsharing
@@ -49,7 +49,7 @@ export async function POST(
 
     // Update the document to disable sharing
     const updatedDocument = await prisma.document.update({
-      where: { id: params.documentId },
+      where: { id: (await params).documentId },
       data: { shared: false },
     });
 

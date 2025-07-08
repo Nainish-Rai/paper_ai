@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 // POST /api/documents/[documentId]/invite
 export async function POST(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -21,7 +21,7 @@ export async function POST(
 
     // Find the document
     const document = await prisma.document.findUnique({
-      where: { id: params.documentId },
+      where: { id: (await params).documentId },
     });
 
     if (!document) {
@@ -95,7 +95,7 @@ export async function POST(
     const existingPermission = await prisma.documentPermission.findUnique({
       where: {
         documentId_userId: {
-          documentId: params.documentId,
+          documentId: (await params).documentId,
           userId: user.id,
         },
       },
@@ -119,7 +119,7 @@ export async function POST(
     // Create new permission
     const permission = await prisma.documentPermission.create({
       data: {
-        documentId: params.documentId,
+        documentId: (await params).documentId,
         userId: user.id,
         role,
       },
