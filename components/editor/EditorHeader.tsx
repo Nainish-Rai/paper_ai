@@ -52,6 +52,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@/components/dashboard/user-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import InviteDialog from "../blocks/invite-dialog";
+import { FavoriteButton } from "../dashboard/favorite-button";
 
 interface EditorHeaderProps {
   userId?: string;
@@ -75,7 +76,6 @@ export function EditorHeader({
   );
 
   const [copied, setCopied] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isAIToolbarOpen, setIsAIToolbarOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
@@ -96,15 +96,6 @@ export function EditorHeader({
       });
     }
   }, [document, documentId, toast]);
-
-  // Handle favorite toggle
-  const handleFavoriteToggle = useCallback(() => {
-    setIsFavorite((prev) => !prev);
-    toast({
-      description: isFavorite ? "Removed from favorites" : "Added to favorites",
-      duration: 2000,
-    });
-  }, [isFavorite, toast]);
 
   // Format the current date nicely
   const formattedDate = useMemo(() => {
@@ -262,26 +253,21 @@ export function EditorHeader({
             )}
 
             {/* Favorite toggle */}
-            {!isLoading && (
+            {!isLoading && document && (
               <TooltipProvider delayDuration={300}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
+                    <FavoriteButton
+                      documentId={documentId || ""}
+                      isFavorite={document.favorite || false}
                       size="icon"
+                      variant="ghost"
                       className="h-8 w-8 rounded-full"
-                      onClick={handleFavoriteToggle}
-                    >
-                      {isFavorite ? (
-                        <Star className="h-3.5 w-3.5 text-yellow-400" />
-                      ) : (
-                        <StarOff className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
                     <p>
-                      {isFavorite
+                      {document.favorite
                         ? "Remove from favorites"
                         : "Add to favorites"}
                     </p>
@@ -311,7 +297,7 @@ export function EditorHeader({
             )}
 
             {/* More actions menu */}
-            {!isLoading && (
+            {!isLoading && document && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -324,20 +310,29 @@ export function EditorHeader({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem
-                    onClick={handleFavoriteToggle}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     className="text-sm"
                   >
-                    {isFavorite ? (
-                      <>
-                        <StarOff className="w-3.5 h-3.5 mr-2" />
-                        Remove from favorites
-                      </>
-                    ) : (
-                      <>
-                        <Star className="w-3.5 h-3.5 mr-2" />
-                        Add to favorites
-                      </>
-                    )}
+                    <FavoriteButton
+                      documentId={documentId || ""}
+                      isFavorite={document.favorite || false}
+                      showText
+                    >
+                      {document.favorite ? (
+                        <>
+                          <StarOff className="w-3.5 h-3.5 mr-2" />
+                          Remove from favorites
+                        </>
+                      ) : (
+                        <>
+                          <Star className="w-3.5 h-3.5 mr-2" />
+                          Add to favorites
+                        </>
+                      )}
+                    </FavoriteButton>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-sm">
                     <FileText className="w-3.5 h-3.5 mr-2" />

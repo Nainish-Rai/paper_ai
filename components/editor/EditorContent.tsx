@@ -56,7 +56,7 @@ export function EditorContent({ editor }: { editor: any }) {
   if (!editor) return null;
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-200px)]">
+    <div className="relative w-full  min-h-[calc(100vh-200px)]">
       {isSaving && (
         <div className="absolute z-50 top-2 right-2 px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 opacity-80 transition-opacity duration-200">
           Saving...
@@ -68,7 +68,7 @@ export function EditorContent({ editor }: { editor: any }) {
         formattingToolbar={false}
         className={
           cn(
-            " w-full h-full",
+            " min-h-screen w-full h-full",
             "prose prose-stone dark:prose-invert max-w-none focus:outline-none",
             "prose-headings:font-normal prose-h1:text-3xl prose-h1:font-medium",
             "prose-h2:text-2xl prose-h2:font-medium prose-h3:text-xl prose-h3:font-medium",

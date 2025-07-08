@@ -44,6 +44,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { useFavoriteDocuments } from "@/lib/hooks/useFavoriteDocuments";
+import { useSharedDocuments } from "@/lib/hooks/useSharedDocuments";
+import { useDocumentStore } from "@/lib/stores/documentStore";
 
 // Workspace document data with query
 function useDocuments() {
@@ -71,6 +74,11 @@ function DashboardSideBar() {
   const pathname = usePathname();
   const { toast } = useToast();
   const { data: documents, isLoading: documentsLoading } = useDocuments();
+  const { data: favoriteDocuments, isLoading: favoritesLoading } =
+    useFavoriteDocuments(user?.id);
+  const { data: sharedDocuments, isLoading: sharedLoading } =
+    useSharedDocuments(user?.id);
+  const { toggleFavorite } = useDocumentStore();
   const [isCreateDocumentOpen, setIsCreateDocumentOpen] = useState(false);
 
   // State for search
@@ -136,6 +144,27 @@ function DashboardSideBar() {
 
   const handleNewPage = () => {
     setIsCreateDocumentOpen(true);
+  };
+
+  // Toggle favorite status for a document
+  const handleToggleFavorite = async (
+    event: React.MouseEvent,
+    docId: string
+  ) => {
+    event.stopPropagation();
+    try {
+      await toggleFavorite(docId);
+      toast({
+        title: "Success",
+        description: "Document favorite status updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    }
   };
 
   // Check if current path is active
@@ -274,10 +303,12 @@ function DashboardSideBar() {
     id,
     title,
     emoji,
+    isFavorite = false,
   }: {
     id: string;
     title: string;
     emoji?: string;
+    isFavorite?: boolean;
   }) => {
     const isDocActive = pathname === `/dashboard/documents/${id}`;
 
@@ -306,9 +337,17 @@ function DashboardSideBar() {
                 <PenSquare className="h-3.5 w-3.5 mr-2" />
                 <span>Rename</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center">
-                <Star className="h-3.5 w-3.5 mr-2" />
-                <span>Favorite</span>
+              <DropdownMenuItem
+                className="flex items-center"
+                onClick={(e) => handleToggleFavorite(e, id)}
+              >
+                <Star
+                  className={cn(
+                    "h-3.5 w-3.5 mr-2",
+                    isFavorite && "fill-yellow-500 text-yellow-500"
+                  )}
+                />
+                <span>{isFavorite ? "Unfavorite" : "Favorite"}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="flex items-center">
                 <FileText className="h-3.5 w-3.5 mr-2" />
@@ -332,8 +371,6 @@ function DashboardSideBar() {
       !searchValue ||
       doc.title.toLowerCase().includes(searchValue.toLowerCase())
   );
-
-  const recentDocuments = documents?.slice(0, 3);
 
   return (
     <nav
@@ -449,18 +486,18 @@ function DashboardSideBar() {
                 onClick={() => router.push("/dashboard")}
                 active={isActive("/dashboard")}
               />
-              <TooltipButton
+              {/* <TooltipButton
                 icon={<Clock className="h-4 w-4 mr-2" />}
                 label="Recent"
                 onClick={() => router.push("/dashboard/recent")}
                 active={isActive("/dashboard/recent")}
-              />
-              <TooltipButton
+              /> */}
+              {/* <TooltipButton
                 icon={<Calendar className="h-4 w-4 mr-2" />}
                 label="Calendar"
                 onClick={() => router.push("/dashboard/calendar")}
                 active={isActive("/dashboard/calendar")}
-              />
+              /> */}
               <TooltipButton
                 icon={<LayoutGrid className="h-4 w-4 mr-2" />}
                 label="All Pages"
@@ -487,7 +524,7 @@ function DashboardSideBar() {
         </div>
 
         {/* Document sections */}
-        {!documentsLoading ? (
+        {!documentsLoading && !favoritesLoading && !sharedLoading ? (
           <>
             {/* Favorites section */}
             <SidebarSection
@@ -496,8 +533,21 @@ function DashboardSideBar() {
               isOpenState={favoritesOpen}
               onToggle={() => setFavoritesOpen(!favoritesOpen)}
             >
-              <DocumentItem id="1" title="Getting Started Guide" emoji="🚀" />
-              <DocumentItem id="2" title="Project Roadmap" emoji="🗺️" />
+              {favoriteDocuments && favoriteDocuments.length > 0 ? (
+                favoriteDocuments.map((doc: any) => (
+                  <DocumentItem
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.title}
+                    emoji="📄"
+                    isFavorite={true}
+                  />
+                ))
+              ) : (
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  No favorite documents yet
+                </div>
+              )}
             </SidebarSection>
 
             {/* Private section */}
@@ -515,7 +565,8 @@ function DashboardSideBar() {
                       key={doc.id}
                       id={doc.id}
                       title={doc.title}
-                      emoji={doc.emoji}
+                      emoji={doc.emoji || "📄"}
+                      isFavorite={doc.favorite}
                     />
                   ))
                 ) : (
@@ -529,7 +580,8 @@ function DashboardSideBar() {
                     key={doc.id}
                     id={doc.id}
                     title={doc.title}
-                    emoji={doc.emoji}
+                    emoji={doc.emoji || "📄"}
+                    isFavorite={doc.favorite}
                   />
                 ))
               ) : (
@@ -546,9 +598,21 @@ function DashboardSideBar() {
               isOpenState={sharedOpen}
               onToggle={() => setSharedOpen(!sharedOpen)}
             >
-              <div className="px-2 py-1 text-xs text-muted-foreground">
-                No shared pages
-              </div>
+              {sharedDocuments && sharedDocuments.length > 0 ? (
+                sharedDocuments.map((doc: any) => (
+                  <DocumentItem
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.title}
+                    emoji={doc.emoji || "🔗"}
+                    isFavorite={doc.favorite}
+                  />
+                ))
+              ) : (
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  No shared pages
+                </div>
+              )}
             </SidebarSection>
 
             {/* Trash section */}

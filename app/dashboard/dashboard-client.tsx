@@ -43,6 +43,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FavoriteButton } from "@/components/dashboard/favorite-button";
 
 // Document type definition
 type Document = {
@@ -51,6 +52,7 @@ type Document = {
   createdAt: string;
   updatedAt: string;
   emoji?: string;
+  favorite?: boolean;
 };
 
 // Memoize components to prevent unnecessary re-renders
@@ -148,6 +150,13 @@ export function DashboardClient() {
               <Clock className="h-3 w-3 mr-1" />
               {new Date(document.updatedAt || Date.now()).toLocaleDateString()}
             </p>
+          </div>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <FavoriteButton
+              documentId={document.id}
+              isFavorite={document.favorite || false}
+              size="sm"
+            />
           </div>
         </CardContent>
       </Card>

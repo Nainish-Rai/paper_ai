@@ -22,6 +22,7 @@ interface DocumentState {
     templateId?: string
   ) => Promise<Document | null>;
   updateDocument: (documentId: string, content: string) => Promise<void>;
+  toggleFavorite: (documentId: string) => Promise<void>;
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
@@ -120,6 +121,37 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       set({
         error:
           error instanceof Error ? error.message : "Failed to update document",
+      });
+      throw error;
+    }
+  },
+  toggleFavorite: async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/documents/${documentId}/favorite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle favorite");
+      }
+
+      const updatedDocument = await response.json();
+      set((state) => ({
+        documents: state.documents.map((doc) =>
+          doc.id === documentId ? updatedDocument : doc
+        ),
+        currentDocument:
+          state.currentDocument?.id === documentId
+            ? updatedDocument
+            : state.currentDocument,
+      }));
+    } catch (error) {
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to toggle favorite",
       });
       throw error;
     }
