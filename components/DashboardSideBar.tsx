@@ -35,6 +35,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateDocument } from "@/components/dashboard/create-document";
+import { CreateDocument } from "@/components/dashboard/create-document";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,6 +107,7 @@ function DashboardSideBar() {
   });
 
   useHotkeys("alt+n", () => {
+    setIsCreateDocumentOpen(true);
     setIsCreateDocumentOpen(true);
   });
 
@@ -571,7 +573,8 @@ function DashboardSideBar() {
                   ))
                 ) : (
                   <div className="px-2 py-1 text-xs text-muted-foreground">
-                    No results match &quot;{searchValue}&quot;
+                    No results match &quot;{searchValue}&quot; No results match
+                    &quot;{searchValue}&quot;
                   </div>
                 )
               ) : documents && documents.length > 0 ? (
@@ -667,6 +670,13 @@ function DashboardSideBar() {
           />
         </div>
       </div>
+
+      {/* Create Document Dialog */}
+      <CreateDocument
+        isHidden
+        isOpen={isCreateDocumentOpen}
+        onClose={() => setIsCreateDocumentOpen(false)}
+      />
 
       {/* Create Document Dialog */}
       <CreateDocument

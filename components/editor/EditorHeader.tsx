@@ -27,6 +27,10 @@ import {
   Globe,
   UserPlus,
   Loader,
+  Link,
+  Globe,
+  UserPlus,
+  Loader,
 } from "lucide-react";
 import { useDocument } from "@/lib/hooks/useDocument";
 import { useShareDocument } from "@/lib/hooks/useShareDocument";
@@ -78,6 +82,7 @@ export function EditorHeader({
   const [copied, setCopied] = useState(false);
   const [isAIToolbarOpen, setIsAIToolbarOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   // Check if current user is the owner
   const isOwner = user?.id === document?.authorId;
@@ -114,9 +119,15 @@ export function EditorHeader({
     setIsInviteDialogOpen(true);
   }, []);
 
+  // Toggle document sharing
+  const handleShareToggle = useCallback(() => {
+    setIsInviteDialogOpen(true);
+  }, []);
+
   // If not a document page, render dashboard header
   if (!isDocumentPage) {
     return (
+      <div className="w-full flex items-center px-6">
       <div className="w-full flex items-center px-6">
         <div className="flex items-center justify-between w-full">
           <div>
@@ -185,14 +196,27 @@ export function EditorHeader({
                       size="sm"
                       className={cn("h-8 gap-1.5 text-xs rounded-md")}
                       onClick={handleShareToggle}
+                      variant={document?.shared ? "outline" : "default"}
+                      size="sm"
+                      className={cn("h-8 gap-1.5 text-xs rounded-md")}
+                      onClick={handleShareToggle}
                       disabled={isSharing}
                     >
                       {isSharing ? (
                         <Loader className="h-3.5 w-3.5 animate-spin" />
                       ) : document?.shared ? (
+                      {isSharing ? (
+                        <Loader className="h-3.5 w-3.5 animate-spin" />
+                      ) : document?.shared ? (
                         <>
                           <Users className="h-3.5 w-3.5" />
+                          <Users className="h-3.5 w-3.5" />
                           <span className="hidden sm:inline">Share</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Private</span>
                         </>
                       ) : (
                         <>
@@ -203,6 +227,9 @@ export function EditorHeader({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
+                    <p>
+                      {document?.shared ? "Manage sharing" : "Share document"}
+                    </p>
                     <p>
                       {document?.shared ? "Manage sharing" : "Share document"}
                     </p>
@@ -362,6 +389,25 @@ export function EditorHeader({
                       <DropdownMenuSeparator />
                     </>
                   )}
+                  {isOwner && document?.shared && (
+                    <>
+                      <DropdownMenuItem
+                        className="text-sm"
+                        onClick={handleCopyLink}
+                      >
+                        <Link className="w-3.5 h-3.5 mr-2" />
+                        Copy link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-sm"
+                        onClick={() => setIsInviteDialogOpen(true)}
+                      >
+                        <UserPlus className="w-3.5 h-3.5 mr-2" />
+                        Invite users
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem className="text-sm">
                     <Settings className="w-3.5 h-3.5 mr-2" />
                     Page settings
@@ -394,6 +440,13 @@ export function EditorHeader({
           </div>
         </div>
       )}
+
+      {/* Invite Dialog */}
+      <InviteDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+        documentId={documentId || ""}
+      />
 
       {/* Invite Dialog */}
       <InviteDialog

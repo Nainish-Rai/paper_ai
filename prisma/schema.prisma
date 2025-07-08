@@ -91,7 +91,6 @@ model Document {
   title       String
   content     String?  @db.Text
   shared      Boolean  @default(false)
-  favorite    Boolean  @default(false)
   roomId      String?
   authorId    String
   createdAt   DateTime @default(now())
