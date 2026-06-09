@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useCompletion } from "ai/react";
+import { useCompletion } from "@ai-sdk/react";
 
 export function useAICompletion() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { complete, completion, isLoading } = useCompletion({
     api: "/api/ai/autocomplete",
-    onResponse: () => {
+    onFinish: () => {
       setIsGenerating(false);
     },
     onError: () => {

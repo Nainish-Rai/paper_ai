@@ -1,23 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { memo, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useDocuments } from "@/lib/hooks/useDocuments";
 import { useProfile } from "@/lib/hooks/useProfile";
-import { DocumentsSection } from "@/components/dashboard/documents-section";
-import { RecentDocuments } from "@/components/dashboard/recent-documents";
-import { WelcomeCard } from "@/components/dashboard/welcome-card";
 import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
 import { authClient } from "@/lib/auth/client";
-import { AIUsageCard } from "@/components/dashboard/ai-usage-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { CreateDocument } from "@/components/dashboard/create-document";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   FileText,
@@ -25,7 +19,6 @@ import {
   Plus,
   Calendar,
   Star,
-  Trash2,
   ArrowUpDown,
   Search,
   MoreHorizontal,
@@ -42,7 +35,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { FavoriteButton } from "@/components/dashboard/favorite-button";
 
 // Document type definition
@@ -55,16 +47,9 @@ type Document = {
   favorite?: boolean;
 };
 
-// Memoize components to prevent unnecessary re-renders
-const MemoizedDocumentsSection = memo(DocumentsSection);
-const MemoizedRecentDocuments = memo(RecentDocuments);
-const MemoizedQuickActions = memo(QuickActions);
-const MemoizedAIUsageCard = memo(AIUsageCard);
-
 export function DashboardClient() {
   const router = useRouter();
   const session = authClient.useSession();
-  const userId = session.data?.user.id;
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortOrder, setSortOrder] = useState<"updated" | "created" | "name">(
     "updated"
@@ -78,7 +63,6 @@ export function DashboardClient() {
   const {
     data: documents,
     isLoading: documentsLoading,
-    error: documentsError,
   } = useDocuments(profile?.id);
 
   // Filter documents based on search query
@@ -321,6 +305,13 @@ export function DashboardClient() {
               </Button>
             </div>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <QuickActions
+            onTemplates={handleCreateNewDoc}
+            onSettings={() => router.push("/dashboard/settings")}
+          />
         </div>
 
         {/* Favorites - Notion-like pinned items */}

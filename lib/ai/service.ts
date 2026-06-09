@@ -1,8 +1,7 @@
 import OpenAI from "openai";
-import { OpenAIStream, StreamingTextResponse } from "ai";
+import { streamText } from "ai";
 import {
   AIContextState,
-  AIError,
   AIResponse,
   StyleAnalysis,
   DocumentTemplate,
@@ -11,6 +10,7 @@ import {
 import { RateLimiter } from "./rateLimiter";
 import { AICache } from "./cache";
 import { AIMonitoring } from "./monitoring";
+import { getLanguageModel } from "./provider";
 
 const MODEL_NAME = "llama-3.3-70b-versatile";
 const MAX_RETRIES = 3;
@@ -113,30 +113,24 @@ export class AIService {
   async streamCompletion(
     prompt: string,
     context?: Partial<AIContextState>
-  ): Promise<StreamingTextResponse> {
+  ): Promise<Response> {
     await this.rateLimiter.checkRateLimit();
 
-    const response = await this.retryWithExponentialBackoff(
+    const result = await this.retryWithExponentialBackoff(
       async () => {
-        const config: OpenAI.Chat.ChatCompletionCreateParams = {
-          model: MODEL_NAME,
-          messages: [{ role: "user" as const, content: prompt }],
+        return streamText({
+          model: getLanguageModel(MODEL_NAME),
+          prompt,
           temperature: DEFAULT_CONFIG.temperature,
-          max_tokens: DEFAULT_CONFIG.max_tokens,
-          response_format: {
-            type: "json_object" as const,
-          },
-          ...(context?.modelConfig || {}),
-          stream: true as const,
-        };
-
-        return this.openai.chat.completions.create(config);
+          maxOutputTokens:
+            context?.modelConfig?.max_tokens || DEFAULT_CONFIG.max_tokens,
+        });
       },
       "stream",
       context
     );
 
-    return new StreamingTextResponse(OpenAIStream(response as any));
+    return result.toTextStreamResponse();
   }
 
   async checkGrammar(
