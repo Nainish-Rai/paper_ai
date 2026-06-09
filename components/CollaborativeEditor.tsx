@@ -27,7 +27,7 @@ function EditorWrapper({
   userId: string;
   documentId: string;
 }) {
-  const { isLoading, error, accessDenied, editor } =
+  const { isLoading, error, accessDenied, editor, saveStatus } =
     useDocumentData(documentId);
 
   if (accessDenied) {
@@ -55,7 +55,7 @@ function EditorWrapper({
     >
       <div className="flex-1 overflow-auto bg-background">
         <div className="max-w-[900px] mx-auto px-4 py-8 h-full">
-          <EditorContent editor={editor} />
+          <EditorContent editor={editor} saveStatus={saveStatus} />
         </div>
       </div>
     </motion.div>

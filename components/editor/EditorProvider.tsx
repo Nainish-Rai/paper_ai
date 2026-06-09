@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, ReactNode } from "react";
 import * as Y from "yjs";
 import YPartyKitProvider from "y-partykit/provider";
 
@@ -38,7 +38,7 @@ export function EditorProvider({
 
     // Set up PartyKit provider
     const provider = new YPartyKitProvider(
-      "blocknote-dev.yousefed.partykit.dev",
+      getPartyKitHost(),
       // Use document ID as the room name for collaboration
       `paper-ai-${documentId}`,
       doc,
@@ -57,6 +57,13 @@ export function EditorProvider({
     return { doc, provider };
   }, [documentId, userId]);
 
+  useEffect(() => {
+    return () => {
+      provider.destroy();
+      doc.destroy();
+    };
+  }, [doc, provider]);
+
   const value = useMemo(
     () => ({
       doc,
@@ -70,4 +77,14 @@ export function EditorProvider({
   return (
     <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
   );
+}
+
+function getPartyKitHost() {
+  const configuredHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST?.trim();
+
+  if (configuredHost) {
+    return configuredHost.replace(/^https?:\/\//, "");
+  }
+
+  return process.env.NODE_ENV === "development" ? "localhost:1999" : "";
 }

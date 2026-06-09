@@ -13,7 +13,11 @@ export function useDocumentData(documentId: string) {
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const saveStatusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Verify document access
   useEffect(() => {
@@ -86,6 +90,7 @@ export function useDocumentData(documentId: string) {
 
     const saveContent = async () => {
       try {
+        setSaveStatus("saving");
         const content = JSON.stringify(editor.document);
         const response = await fetch(`/api/documents/${documentId}/update`, {
           method: "PATCH",
@@ -98,8 +103,17 @@ export function useDocumentData(documentId: string) {
         if (!response.ok) {
           throw new Error(`Failed to save: ${response.statusText}`);
         }
+
+        setSaveStatus("saved");
+        if (saveStatusTimeoutRef.current) {
+          clearTimeout(saveStatusTimeoutRef.current);
+        }
+        saveStatusTimeoutRef.current = setTimeout(() => {
+          setSaveStatus("idle");
+        }, 1600);
       } catch (error) {
         console.error("Failed to save document:", error);
+        setSaveStatus("error");
       }
     };
 
@@ -119,6 +133,9 @@ export function useDocumentData(documentId: string) {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current);
+      }
     };
   }, [editor, documentId]);
 
@@ -127,5 +144,6 @@ export function useDocumentData(documentId: string) {
     error,
     accessDenied,
     editor,
+    saveStatus,
   };
 }

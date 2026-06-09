@@ -1,7 +1,6 @@
 "use client";
 
 import { BlockNoteView } from "@blocknote/mantine";
-import { useCallback, useEffect, useState } from "react";
 import {
   BasicTextStyleButton,
   BlockTypeSelect,
@@ -21,45 +20,21 @@ import { AIButton } from "./AIButton";
 
 type EditorContentProps = {
   editor: BlockNoteEditor | null;
+  saveStatus: "idle" | "saving" | "saved" | "error";
 };
 
-export function EditorContent({ editor }: { editor: any }) {
+export function EditorContent({ editor, saveStatus }: EditorContentProps) {
   const { theme } = useTheme();
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveTimer, setSaveTimer] = useState<NodeJS.Timeout | null>(null);
-
-  // Mock saving indicator for UX improvement
-  const triggerSavingIndicator = useCallback(() => {
-    if (saveTimer) clearTimeout(saveTimer);
-    setIsSaving(true);
-    const timer = setTimeout(() => {
-      setIsSaving(false);
-    }, 1500);
-    setSaveTimer(timer);
-  }, [saveTimer]);
-
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleContentChange = () => {
-      triggerSavingIndicator();
-    };
-
-    // Subscribe to editor changes
-    editor.onEditorContentChange(handleContentChange);
-
-    return () => {
-      if (saveTimer) clearTimeout(saveTimer);
-    };
-  }, [editor, triggerSavingIndicator, saveTimer]);
 
   if (!editor) return null;
 
   return (
     <div className="relative w-full  min-h-[calc(100vh-200px)]">
-      {isSaving && (
-        <div className="absolute z-50 top-2 right-2 px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 opacity-80 transition-opacity duration-200">
-          Saving...
+      {saveStatus !== "idle" && (
+        <div className="absolute right-2 top-2 z-50 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600 opacity-80 transition-opacity duration-200 dark:bg-gray-800 dark:text-gray-300">
+          {saveStatus === "saving" && "Saving"}
+          {saveStatus === "saved" && "Saved"}
+          {saveStatus === "error" && "Save failed"}
         </div>
       )}
       <BlockNoteView
