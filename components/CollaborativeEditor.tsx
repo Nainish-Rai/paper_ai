@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { AccessDeniedDialog } from "@/components/ui/access-denied-dialog";
 import { EditorProvider } from "./editor/EditorProvider";
 import { EditorContent } from "./editor/EditorContent";
@@ -8,25 +7,19 @@ import { useDocumentData } from "@/hooks/useDocumentData";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
 import { ErrorDisplay } from "./ui/ErrorDisplay";
 import { useAuth } from "../lib/auth/provider";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { AgentPanel } from "./editor/AgentPanel";
 
 export function CollaborativeEditor({ documentId }: { documentId: string }) {
   const userId = useAuth().user?.id;
   return (
     <EditorProvider userId={userId || ""} documentId={documentId}>
-      <EditorWrapper userId={userId || ""} documentId={documentId} />
+      <EditorWrapper documentId={documentId} />
     </EditorProvider>
   );
 }
 
-function EditorWrapper({
-  userId,
-  documentId,
-}: {
-  userId: string;
-  documentId: string;
-}) {
+function EditorWrapper({ documentId }: { documentId: string }) {
   const { isLoading, error, accessDenied, editor, saveStatus } =
     useDocumentData(documentId);
 
@@ -58,6 +51,7 @@ function EditorWrapper({
           <EditorContent editor={editor} saveStatus={saveStatus} />
         </div>
       </div>
+      <AgentPanel documentId={documentId} />
     </motion.div>
   );
 }
