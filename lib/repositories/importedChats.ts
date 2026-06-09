@@ -62,6 +62,38 @@ export async function findImportedChatBySource(
   });
 }
 
+export async function findImportedChatByDocument(
+  userId: string,
+  documentId: string
+) {
+  await ensureImportedChatIndexes();
+  const collection = await getImportedChatsCollection();
+
+  return collection.findOne({
+    userId,
+    documentId,
+  });
+}
+
+export async function searchImportedChats(
+  userId: string,
+  query: string,
+  limit = 5
+) {
+  await ensureImportedChatIndexes();
+  const collection = await getImportedChatsCollection();
+  const expression = new RegExp(escapeRegex(query), "i");
+
+  return collection
+    .find({
+      userId,
+      $or: [{ title: expression }, { rawText: expression }],
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+}
+
 export async function saveImportedChat(importedChat: ImportedChat) {
   await ensureImportedChatIndexes();
   const collection = await getImportedChatsCollection();
@@ -72,4 +104,8 @@ export async function saveImportedChat(importedChat: ImportedChat) {
     ...importedChat,
     _id: result.insertedId,
   };
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
