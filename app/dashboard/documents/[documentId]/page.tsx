@@ -4,7 +4,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import DocumentPageClient from "./documentPage";
-import { authClient } from "@/lib/auth/client";
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export default async function DocumentPage({
@@ -48,7 +48,9 @@ export default async function DocumentPage({
 
   // Try to prefetch session data with proper error handling
   try {
-    const session = await authClient.getSession();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     if (session) {
       queryClient.setQueryData(["session"], session);
     }

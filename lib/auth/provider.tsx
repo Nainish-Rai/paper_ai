@@ -8,8 +8,7 @@ import {
   useEffect,
 } from "react";
 import { authClient } from "./client";
-import type { User, AuthSession } from "./types";
-import { isAuthSession } from "./types";
+import type { User } from "./types";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -38,9 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = async () => {
     try {
       const session = await authClient.getSession();
-      console.log("Session:", session);
-
-      if (session && session.data) {
+      if (session.data?.user) {
         setUser(session.data.user);
       } else {
         setUser(null);
@@ -64,10 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const getToken = async () => {
     const session = await authClient.getSession();
-    if (!session || !session?.data?.session) {
+    const token = session.data?.session.token;
+    if (!token) {
       throw new Error("No valid session");
     }
-    return session.data.session.token;
+    return token;
   };
 
   useEffect(() => {

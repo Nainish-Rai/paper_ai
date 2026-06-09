@@ -46,6 +46,7 @@ type FormData = z.infer<typeof formSchema>;
 type SocialProvider = "github" | "google";
 
 export default function LoginCard() {
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
     form: false,
     github: false,
@@ -86,17 +87,30 @@ export default function LoginCard() {
     setError("");
 
     try {
-      const { error: signupError } = await authClient.signUp.email({
-        email: data.email,
-        password: data.password,
-        callbackURL: "/dashboard",
-        name: data.email.split("@")[0], // Pass email username as name
-      });
+      const result =
+        mode === "signup"
+          ? await authClient.signUp.email({
+              email: data.email,
+              password: data.password,
+              callbackURL: "/dashboard",
+              name: data.email.split("@")[0],
+            })
+          : await authClient.signIn.email({
+              email: data.email,
+              password: data.password,
+              callbackURL: "/dashboard",
+            });
 
-      if (signupError) {
-        setError(signupError.message || "Failed to create account");
+      if (result.error) {
+        setError(
+          result.error.message ||
+            (mode === "signup"
+              ? "Failed to create account"
+              : "Failed to sign in")
+        );
       } else {
         router.push("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -110,11 +124,38 @@ export default function LoginCard() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-3xl font-bold pb-2">Get Started</CardTitle>
         <CardDescription className="text-base">
-          Enter your email to create your account
+          Import and work with your AI conversations
         </CardDescription>
       </CardHeader>
 
       <CardContent className="grid gap-6 md:w-3/4 lg:w-1/2 ">
+        <div className="grid grid-cols-2 rounded-lg border p-1">
+          <Button
+            type="button"
+            variant={mode === "signup" ? "default" : "ghost"}
+            className="rounded-md"
+            onClick={() => {
+              setMode("signup");
+              setError("");
+            }}
+            disabled={isLoading.form}
+          >
+            Create
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "signin" ? "default" : "ghost"}
+            className="rounded-md"
+            onClick={() => {
+              setMode("signin");
+              setError("");
+            }}
+            disabled={isLoading.form}
+          >
+            Sign in
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 gap-3">
           <Button
             type="button"
@@ -198,7 +239,9 @@ export default function LoginCard() {
                       placeholder="••••••••"
                       aria-describedby="password-description"
                       disabled={isLoading.form}
-                      autoComplete="new-password"
+                      autoComplete={
+                        mode === "signup" ? "new-password" : "current-password"
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -223,10 +266,10 @@ export default function LoginCard() {
               {isLoading.form ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  {mode === "signup" ? "Creating account..." : "Signing in..."}
                 </>
               ) : (
-                "Create account"
+                mode === "signup" ? "Create account" : "Sign in"
               )}
             </Button>
           </form>
