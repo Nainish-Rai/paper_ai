@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { stepCountIs, streamText, tool } from "ai";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { getLanguageModel } from "@/lib/ai/provider";
 import { documentContentToText } from "@/lib/documents/content";
 import {
@@ -167,7 +167,7 @@ function getPrompt(body: unknown) {
 }
 
 async function getAccessibleDocument(userId: string, documentId: string) {
-  const document = await prisma.document.findUnique({
+  const document = await db.document.findUnique({
     where: {
       id: documentId,
     },
@@ -189,7 +189,7 @@ async function getAccessibleDocument(userId: string, documentId: string) {
 }
 
 async function searchAccessibleDocuments(userId: string, query: string) {
-  const documents = await prisma.document.findMany({
+  const documents = await db.document.findMany({
     where: {
       AND: [
         {

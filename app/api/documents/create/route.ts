@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     // Create the document with initial content
-    const document = await prisma.document.create({
+    const document = await db.document.create({
       data: {
         title: title.trim(),
         content: content || "[]", // Store the stringified content

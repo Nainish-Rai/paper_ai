@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 // PATCH /api/documents/[documentId]/collaborators/[userId]
 // Updates a collaborator's role
@@ -21,7 +21,7 @@ export async function PATCH(
     }
 
     // Find the document
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: { id: (await params).documentId },
     });
 
@@ -59,7 +59,7 @@ export async function PATCH(
     }
 
     // Update or create the permission
-    const permission = await prisma.documentPermission.upsert({
+    const permission = await db.documentPermission.upsert({
       where: {
         documentId_userId: {
           documentId: (await params).documentId,
@@ -106,7 +106,7 @@ export async function PATCH(
 //     }
 
 //     // Find the document
-//     const document = await prisma.document.findUnique({
+//     const document = await db.document.findUnique({
 //       where: { id: params.documentId },
 //     });
 
@@ -134,7 +134,7 @@ export async function PATCH(
 //     }
 
 //     // Remove the permission
-//     await prisma.documentPermission.deleteMany({
+//     await db.documentPermission.deleteMany({
 //       where: {
 //         documentId: params.documentId,
 //         userId: params.userId,

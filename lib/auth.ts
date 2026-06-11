@@ -1,5 +1,5 @@
 import { verify } from "jsonwebtoken";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "paper-ai-local-secret";
 const AUTH_COOKIE = "paper_ai_auth_token";
@@ -32,7 +32,7 @@ export const auth = {
 
       try {
         const decoded = verify(token, JWT_SECRET) as JwtPayload;
-        const user = await prisma.user.findUnique({
+        const user = await db.user.findUnique({
           where: {
             id: decoded.userId,
           },

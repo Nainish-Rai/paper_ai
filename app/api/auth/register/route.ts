@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { hash } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { randomUUID } from "crypto";
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { email },
     });
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Create new user with email as base for generated fields
     const emailName = email.split("@")[0];
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         id: randomUUID(),
         email,

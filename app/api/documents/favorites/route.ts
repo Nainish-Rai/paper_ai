@@ -1,6 +1,6 @@
 // filepath: c:\Users\Nainish\Developement\paper_ai\app\api\documents\favorites\route.ts
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }
 
     // Get all favorite documents for the current user
-    const favoriteDocuments = await prisma.document.findMany({
+    const favoriteDocuments = await db.document.findMany({
       where: {
         authorId: session.user.id,
         favorite: true,

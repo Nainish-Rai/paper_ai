@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prismaClient";
+import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const profile = await prisma.user.findUnique({
+    const profile = await db.user.findUnique({
       where: { id: user.id },
       select: {
         id: true,
@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest) {
 
     const { name, image } = await request.json();
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: user.id },
       data: {
         name: name,

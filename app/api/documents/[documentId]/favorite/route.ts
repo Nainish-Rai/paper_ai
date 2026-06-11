@@ -1,6 +1,6 @@
 // filepath: c:\Users\Nainish\Developement\paper_ai\app\api\documents\[documentId]\favorite\route.ts
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // POST handler to toggle the favorite status of a document
@@ -21,7 +21,7 @@ export async function POST(
     const documentId = (await params).documentId;
 
     // Find the document
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: {
         id: documentId,
       },
@@ -34,7 +34,7 @@ export async function POST(
     // Ensure user owns the document or has proper permissions
     if (document.authorId !== session.user.id) {
       // Check if user has permission for this document
-      const permission = await prisma.documentPermission.findUnique({
+      const permission = await db.documentPermission.findUnique({
         where: {
           documentId_userId: {
             documentId,
@@ -49,7 +49,7 @@ export async function POST(
     }
 
     // Toggle the favorite status
-    const updatedDocument = await prisma.document.update({
+    const updatedDocument = await db.document.update({
       where: {
         id: documentId,
       },

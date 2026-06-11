@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { Document } from "@prisma/client";
+import type { Document, Template } from "@/lib/app-types";
 import { DefaultBlockSchema, PartialBlock } from "@blocknote/core";
 import { DefaultTemplate } from "../templates/documentTemplates";
-import { Template } from "@prisma/client";
 import { markdownToBlocks } from "../utils/markdownToBlocks";
 
 type TemplateType = Template | DefaultTemplate;

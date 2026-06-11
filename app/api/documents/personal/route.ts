@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch all documents owned by the user
-    const documents = await prisma.document.findMany({
+    const documents = await db.document.findMany({
       where: {
         authorId: session.user.id,
       },

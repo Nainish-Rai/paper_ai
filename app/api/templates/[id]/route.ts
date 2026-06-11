@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { z } from "zod";
 
 const templateUpdateSchema = z.object({
@@ -25,7 +25,7 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const template = await prisma.template.findUnique({
+    const template = await db.template.findUnique({
       where: { id: (await params).id },
       include: {
         author: {
@@ -68,7 +68,7 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const template = await prisma.template.findUnique({
+    const template = await db.template.findUnique({
       where: { id: (await params).id },
     });
 
@@ -83,7 +83,7 @@ export async function PATCH(
     const json = await request.json();
     const validatedData = templateUpdateSchema.parse(json);
 
-    const updatedTemplate = await prisma.template.update({
+    const updatedTemplate = await db.template.update({
       where: { id: (await params).id },
       data: validatedData,
     });
@@ -112,7 +112,7 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const template = await prisma.template.findUnique({
+    const template = await db.template.findUnique({
       where: { id: (await params).id },
     });
 
@@ -124,7 +124,7 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
-    await prisma.template.delete({
+    await db.template.delete({
       where: { id: (await params).id },
     });
 

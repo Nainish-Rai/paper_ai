@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 // POST /api/documents/[documentId]/invite
 export async function POST(
@@ -20,7 +20,7 @@ export async function POST(
     }
 
     // Find the document
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: { id: (await params).documentId },
     });
 
@@ -63,11 +63,11 @@ export async function POST(
     // First check if user exists with provided userId or email
     let user;
     if (userId) {
-      user = await prisma.user.findUnique({
+      user = await db.user.findUnique({
         where: { id: userId },
       });
     } else {
-      user = await prisma.user.findUnique({
+      user = await db.user.findUnique({
         where: { email },
       });
     }
@@ -92,7 +92,7 @@ export async function POST(
     }
 
     // Check if permission already exists
-    const existingPermission = await prisma.documentPermission.findUnique({
+    const existingPermission = await db.documentPermission.findUnique({
       where: {
         documentId_userId: {
           documentId: (await params).documentId,
@@ -103,7 +103,7 @@ export async function POST(
 
     if (existingPermission) {
       // Update existing permission
-      const updatedPermission = await prisma.documentPermission.update({
+      const updatedPermission = await db.documentPermission.update({
         where: {
           id: existingPermission.id,
         },
@@ -117,7 +117,7 @@ export async function POST(
     }
 
     // Create new permission
-    const permission = await prisma.documentPermission.create({
+    const permission = await db.documentPermission.create({
       data: {
         documentId: (await params).documentId,
         userId: user.id,

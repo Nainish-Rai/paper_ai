@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Template } from "@prisma/client";
+import type { Template } from "@/lib/app-types";
 import {
   mergeWithDefaultTemplates,
   DefaultTemplate,

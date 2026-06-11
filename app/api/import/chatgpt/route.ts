@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import {
   buildImportedChatDocumentContent,
   parseChatGPTSharedPage,
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       sharedLink.normalizedUrl
     );
 
-    const document = await prisma.document.create({
+    const document = await db.document.create({
       data: {
         title,
         content,
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         updatedAt: new Date(),
       });
     } catch (error) {
-      await prisma.document.delete({
+      await db.document.delete({
         where: {
           id: document.id,
         },

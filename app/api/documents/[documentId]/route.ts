@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
@@ -26,7 +26,7 @@ export async function GET(
       );
     }
 
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: {
         id: resolvedParams.documentId,
       },
@@ -107,7 +107,7 @@ export async function PATCH(
       );
     }
 
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: {
         id: resolvedParams.documentId,
       },
@@ -131,7 +131,7 @@ export async function PATCH(
       );
     }
 
-    const updatedDocument = await prisma.document.update({
+    const updatedDocument = await db.document.update({
       where: {
         id: resolvedParams.documentId,
       },

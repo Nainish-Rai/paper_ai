@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -17,7 +17,7 @@ export async function POST(
 
     const documentId = (await params).documentId;
 
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: {
         id: documentId,
       },
@@ -31,7 +31,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const updatedDocument = await prisma.document.update({
+    const updatedDocument = await db.document.update({
       where: {
         id: documentId,
       },

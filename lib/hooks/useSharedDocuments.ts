@@ -1,6 +1,6 @@
 // filepath: c:\Users\Nainish\Developement\paper_ai\lib\hooks\useSharedDocuments.ts
 import { useQuery } from "@tanstack/react-query";
-import { Document } from "@prisma/client";
+import type { Document } from "@/lib/app-types";
 
 export interface DocumentWithAuthor extends Document {
   author: {

@@ -1,4 +1,4 @@
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,7 +23,7 @@ export async function DELETE(
       );
     }
 
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: { id },
     });
 
@@ -45,7 +45,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.document.delete({
+    await db.document.delete({
       where: { id },
     });
 

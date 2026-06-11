@@ -27,7 +27,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useTemplates } from "@/lib/hooks/useTemplates";
 import { cn } from "@/lib/utils";
-import { Template } from "@prisma/client";
+import type { Template } from "@/lib/app-types";
 import { DefaultTemplate } from "@/lib/templates/documentTemplates";
 
 type TemplateType = Template | DefaultTemplate;

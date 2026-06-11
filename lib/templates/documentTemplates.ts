@@ -1,4 +1,4 @@
-import { Template } from "@prisma/client";
+import type { Template } from "@/lib/app-types";
 
 export interface DefaultTemplate {
   name: string;

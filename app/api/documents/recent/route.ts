@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }
 
     // Find recent documents the user has access to
-    const recentDocuments = await prisma.document.findMany({
+    const recentDocuments = await db.document.findMany({
       where: {
         OR: [
           // Documents the user authored

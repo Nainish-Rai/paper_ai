@@ -321,7 +321,7 @@ async function hydratePermission(permission: DocumentPermissionRecord | null) {
   };
 }
 
-export const prisma = {
+export const db = {
   user: {
     async findUnique(args: AnyRecord) {
       await ensureIndexes();
@@ -532,18 +532,18 @@ export const prisma = {
 
     async upsert(args: AnyRecord) {
       await ensureIndexes();
-      const existing = await prisma.documentPermission.findUnique({
+      const existing = await db.documentPermission.findUnique({
         where: args.where,
       });
 
       if (existing) {
-        return prisma.documentPermission.update({
+        return db.documentPermission.update({
           where: { id: existing.id },
           data: args.update,
         });
       }
 
-      return prisma.documentPermission.create({
+      return db.documentPermission.create({
         data: args.create,
       });
     },
@@ -638,4 +638,4 @@ export const prisma = {
   },
 } as any;
 
-export default prisma;
+export default db;

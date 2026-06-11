@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "paper-ai-local-secret";
 
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const decoded = verify(token, JWT_SECRET) as { userId: string };
 
     // Get user data
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,

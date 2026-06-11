@@ -1,6 +1,6 @@
 // filepath: c:\Users\Nainish\Developement\paper_ai\app\api\documents\shared\route.ts
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     // Get all documents shared with the current user via document permissions
     // that the user did not create themselves
-    const sharedDocuments = await prisma.document.findMany({
+    const sharedDocuments = await db.document.findMany({
       where: {
         OR: [
           // Documents shared with the user through permissions

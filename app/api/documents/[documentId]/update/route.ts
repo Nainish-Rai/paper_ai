@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 
 export async function PATCH(
   request: NextRequest,
@@ -21,7 +21,7 @@ export async function PATCH(
     const { content } = await request.json();
 
     // Find document and check permissions
-    const document = await prisma.document.findUnique({
+    const document = await db.document.findUnique({
       where: {
         id: (await params).documentId,
       },
@@ -51,7 +51,7 @@ export async function PATCH(
     }
 
     // Update document
-    const updatedDocument = await prisma.document.update({
+    const updatedDocument = await db.document.update({
       where: {
         id: (await params).documentId,
       },

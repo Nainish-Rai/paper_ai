@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prismaClient";
+import db from "@/lib/db";
 import { z } from "zod";
 
 // Validation schema for template creation/update
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const templates = await prisma.template.findMany({
+    const templates = await db.template.findMany({
       where: {
         OR: [{ published: true }, { authorId: session.user.id }],
       },
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     const json = await request.json();
     const validatedData = templateSchema.parse(json);
 
-    const template = await prisma.template.create({
+    const template = await db.template.create({
       data: {
         ...validatedData,
         authorId: session.user.id,
