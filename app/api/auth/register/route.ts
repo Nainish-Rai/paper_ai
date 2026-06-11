@@ -4,7 +4,7 @@ import { hash } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { randomUUID } from "crypto";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || "paper-ai-local-secret";
 const SALT_ROUNDS = 10;
 
 export async function POST(req: NextRequest) {

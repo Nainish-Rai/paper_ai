@@ -3,7 +3,7 @@ import prisma from "@/lib/prismaClient";
 import { compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || "paper-ai-local-secret";
 
 export async function POST(req: NextRequest) {
   try {

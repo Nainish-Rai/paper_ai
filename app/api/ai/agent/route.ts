@@ -235,7 +235,12 @@ async function searchAccessibleDocuments(userId: string, query: string) {
     },
   });
 
-  return documents.map((document) => ({
+  return documents.map((document: {
+    id: string;
+    title: string;
+    content: string | null;
+    updatedAt: Date;
+  }) => ({
     id: document.id,
     title: document.title,
     updatedAt: document.updatedAt.toISOString(),

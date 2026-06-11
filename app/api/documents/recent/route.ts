@@ -38,7 +38,16 @@ export async function GET(request: Request) {
     });
 
     // Transform the data to include basic document info
-    const formattedDocuments = recentDocuments.map((doc) => ({
+    const formattedDocuments = recentDocuments.map((doc: {
+      id: string;
+      title: string;
+      updatedAt: Date;
+      author: {
+        name: string | null;
+        email: string;
+      };
+      shared: boolean;
+    }) => ({
       id: doc.id,
       title: doc.title,
       updatedAt: doc.updatedAt.toISOString(),

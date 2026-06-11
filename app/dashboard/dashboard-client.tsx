@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDocuments } from "@/lib/hooks/useDocuments";
 import { useProfile } from "@/lib/hooks/useProfile";
 import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
@@ -59,11 +59,12 @@ export function DashboardClient() {
 
   // Use dependent queries to improve loading efficiency
   const { profile, isLoading: profileLoading } = useProfile();
+  const activeProfile = profile ?? session.data?.user;
 
   const {
     data: documents,
     isLoading: documentsLoading,
-  } = useDocuments(profile?.id);
+  } = useDocuments(activeProfile?.id);
 
   // Filter documents based on search query
   const filteredDocuments = useMemo(() => {
@@ -83,25 +84,18 @@ export function DashboardClient() {
     setIsCreateDocumentOpen(true);
   };
 
+  useEffect(() => {
+    if (!session.isPending && !profileLoading && !activeProfile) {
+      router.push("/login");
+    }
+  }, [activeProfile, profileLoading, router, session.isPending]);
+
   // Redirect if no profile after load attempt
-  if (!profileLoading && !profile) {
-    router.push("/login");
+  if (!session.isPending && !profileLoading && !activeProfile) {
     return null;
   }
 
-  // Sample quick access items for the Notion-like sidebar
-  const quickAccessItems = [
-    { id: "1", title: "Getting Started Guide", icon: "🚀" },
-    { id: "2", title: "Meeting Notes", icon: "📝" },
-    { id: "3", title: "Project Roadmap", icon: "🗺️" },
-    { id: "4", title: "Weekly Tasks", icon: "✅" },
-  ];
-
-  // Recent items
-  const recentItems = documents?.slice(0, 3) || [];
-
-  // Render appropriate skeletons while loading
-  if (profileLoading) {
+  if (session.isPending || (profileLoading && !activeProfile)) {
     return (
       <div className="flex flex-col gap-6">
         <WelcomeCardSkeleton />
@@ -114,6 +108,17 @@ export function DashboardClient() {
       </div>
     );
   }
+
+  // Sample quick access items for the Notion-like sidebar
+  const quickAccessItems = [
+    { id: "1", title: "Getting Started Guide", icon: "🚀" },
+    { id: "2", title: "Meeting Notes", icon: "📝" },
+    { id: "3", title: "Project Roadmap", icon: "🗺️" },
+    { id: "4", title: "Weekly Tasks", icon: "✅" },
+  ];
+
+  // Recent items
+  const recentItems = documents?.slice(0, 3) || [];
 
   // Document card component
   const DocumentCard = ({ document }: { document: any }) => {

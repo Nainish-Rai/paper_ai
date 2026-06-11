@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,6 +49,7 @@ export function CreateDocument({
   const [title, setTitle] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { createDocument, isLoading: isCreating } = useDocumentStore();
   const { templates, isLoading: isLoadingTemplates } = useTemplates();
@@ -81,6 +83,13 @@ export function CreateDocument({
         selectedTemplate
       );
       if (document) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["documents"] }),
+          queryClient.invalidateQueries({ queryKey: ["all-documents"] }),
+          queryClient.invalidateQueries({ queryKey: ["personal-documents"] }),
+          queryClient.invalidateQueries({ queryKey: ["favorite-documents"] }),
+          queryClient.invalidateQueries({ queryKey: ["shared-documents"] }),
+        ]);
         toast({
           title: "Success",
           description: "Document created successfully",

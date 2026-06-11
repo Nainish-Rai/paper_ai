@@ -68,7 +68,15 @@ export async function GET(
         initials: getInitials(document.author.name || "User"),
         role: "owner",
       },
-      ...permissions.map((permission) => ({
+      ...permissions.map((permission: {
+        role: string;
+        user: {
+          id: string;
+          name: string | null;
+          email: string;
+          image: string | null;
+        };
+      }) => ({
         id: permission.user.id,
         name: permission.user.name || "Unknown",
         email: permission.user.email,

@@ -1,4 +1,15 @@
-import { auth } from "@/lib/auth";
-import { toNextJsHandler } from "better-auth/next-js";
+import { NextResponse } from "next/server";
 
-export const { GET, POST } = toNextJsHandler(auth.handler);
+export function GET() {
+  return NextResponse.json(
+    { message: "Paper AI uses local MongoDB auth endpoints in development." },
+    { status: 404 }
+  );
+}
+
+export function POST() {
+  return NextResponse.json(
+    { message: "Paper AI uses local MongoDB auth endpoints in development." },
+    { status: 404 }
+  );
+}
