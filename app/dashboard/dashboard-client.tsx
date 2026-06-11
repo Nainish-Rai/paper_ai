@@ -1,88 +1,62 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-import { useDocuments } from "@/lib/hooks/useDocuments";
-import { useProfile } from "@/lib/hooks/useProfile";
-import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Clock, FileText, Search, Star } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
-import { QuickActions } from "@/components/dashboard/quick-actions";
 import { CreateDocument } from "@/components/dashboard/create-document";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import {
-  FileText,
-  Clock,
-  Plus,
-  Calendar,
-  Star,
-  ArrowUpDown,
-  Search,
-  MoreHorizontal,
-  ChevronRight,
-} from "lucide-react";
+import { FavoriteButton } from "@/components/dashboard/favorite-button";
+import { ImportChatGPTDialog } from "@/components/dashboard/import-chatgpt-dialog";
+import { WelcomeCardSkeleton } from "@/components/dashboard/welcome-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDocuments } from "@/lib/hooks/useDocuments";
+import { useProfile } from "@/lib/hooks/useProfile";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { FavoriteButton } from "@/components/dashboard/favorite-button";
 
-// Document type definition
-type Document = {
+type DashboardDocument = {
   id: string;
   title: string;
-  createdAt: string;
-  updatedAt: string;
-  emoji?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   favorite?: boolean;
 };
 
 export function DashboardClient() {
   const router = useRouter();
   const session = authClient.useSession();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortOrder, setSortOrder] = useState<"updated" | "created" | "name">(
-    "updated"
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateDocumentOpen, setIsCreateDocumentOpen] = useState(false);
 
-  // Use dependent queries to improve loading efficiency
   const { profile, isLoading: profileLoading } = useProfile();
   const activeProfile = profile ?? session.data?.user;
+  const { data: documents, isLoading: documentsLoading } = useDocuments(
+    activeProfile?.id
+  );
 
-  const {
-    data: documents,
-    isLoading: documentsLoading,
-  } = useDocuments(activeProfile?.id);
-
-  // Filter documents based on search query
-  const filteredDocuments = useMemo(() => {
-    if (!documents) return [];
-    if (!searchQuery) return documents;
-
-    return documents.filter((doc) =>
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const sortedDocuments = useMemo(() => {
+    return [...((documents as DashboardDocument[] | undefined) ?? [])].sort(
+      (left, right) =>
+        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
     );
-  }, [documents, searchQuery]);
+  }, [documents]);
 
-  const handleOpenDocument = (id: string) => {
-    router.push(`/dashboard/documents/${id}`);
-  };
+  const filteredDocuments = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return sortedDocuments;
 
-  const handleCreateNewDoc = () => {
-    setIsCreateDocumentOpen(true);
-  };
+    return sortedDocuments.filter((document) =>
+      document.title.toLowerCase().includes(query)
+    );
+  }, [searchQuery, sortedDocuments]);
+
+  const recentDocuments = sortedDocuments.slice(0, 5);
+  const favoriteDocuments = sortedDocuments
+    .filter((document) => document.favorite)
+    .slice(0, 4);
 
   useEffect(() => {
     if (!session.isPending && !profileLoading && !activeProfile) {
@@ -90,541 +64,96 @@ export function DashboardClient() {
     }
   }, [activeProfile, profileLoading, router, session.isPending]);
 
-  // Redirect if no profile after load attempt
   if (!session.isPending && !profileLoading && !activeProfile) {
     return null;
   }
 
   if (session.isPending || (profileLoading && !activeProfile)) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="space-y-8">
         <WelcomeCardSkeleton />
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
-          <DocumentsSkeletonSection />
-          <div className="lg:col-span-2">
-            <QuickActionsSkeletonSection />
-          </div>
-        </div>
+        <DashboardSkeleton />
       </div>
     );
   }
 
-  // Sample quick access items for the Notion-like sidebar
-  const quickAccessItems = [
-    { id: "1", title: "Getting Started Guide", icon: "🚀" },
-    { id: "2", title: "Meeting Notes", icon: "📝" },
-    { id: "3", title: "Project Roadmap", icon: "🗺️" },
-    { id: "4", title: "Weekly Tasks", icon: "✅" },
-  ];
-
-  // Recent items
-  const recentItems = documents?.slice(0, 3) || [];
-
-  // Document card component
-  const DocumentCard = ({ document }: { document: any }) => {
-    return (
-      <Card
-        className="group cursor-pointer hover:border-primary/20 transition-all duration-300"
-        onClick={() => handleOpenDocument(document.id)}
-      >
-        <CardContent className="p-4 flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-muted/30 rounded flex items-center justify-center">
-            <span className="text-xl">{document.emoji || "📄"}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-sm mb-1 truncate">
-              {document.title || "Untitled"}
-            </h3>
-            <p className="text-xs text-muted-foreground flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              {new Date(document.updatedAt || Date.now()).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <FavoriteButton
-              documentId={document.id}
-              isFavorite={document.favorite || false}
-              size="sm"
-            />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <>
-      {/* Main Content Area - Notion-like Dashboard */}
-      <div className="p-4 md:p-6 max-w-7xl mx-auto">
-        {/* Search and View Controls */}
-        <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-4 md:px-6">
+        <section className="flex flex-col gap-6 border-b pb-8 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Paper AI
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+              Save AI conversations as notes you can edit, search, and reuse.
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+              Import a public ChatGPT share, keep the snapshot in MongoDB, then
+              work with it in a collaborative editor and grounded note agent.
+            </p>
+          </div>
+
+          <div className="grid w-full gap-3 sm:grid-cols-2 md:w-[420px]">
+            <ImportChatGPTDialog />
+            <CreateDocument />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search pages..."
-              className="pl-9 border-border h-10 w-full"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search notes"
+              className="h-10 pl-9"
             />
           </div>
-
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 h-10">
-                  <ArrowUpDown className="h-3.5 w-3.5" />
-                  <span className="text-sm">
-                    Sort:{" "}
-                    {sortOrder === "updated"
-                      ? "Last updated"
-                      : sortOrder === "created"
-                      ? "Date created"
-                      : "Name"}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSortOrder("updated")}>
-                  <Clock className="mr-2 h-4 w-4" />
-                  Last updated
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("created")}>
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Date created
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("name")}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Name
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="flex border rounded overflow-hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-10 px-3 rounded-none",
-                  viewMode === "grid" && "bg-accent"
-                )}
-                onClick={() => setViewMode("grid")}
-                aria-label="Grid view"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="7"
-                    height="7"
-                    rx="1"
-                    className={
-                      viewMode === "grid" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                  <rect
-                    x="3"
-                    y="14"
-                    width="7"
-                    height="7"
-                    rx="1"
-                    className={
-                      viewMode === "grid" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                  <rect
-                    x="14"
-                    y="3"
-                    width="7"
-                    height="7"
-                    rx="1"
-                    className={
-                      viewMode === "grid" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                  <rect
-                    x="14"
-                    y="14"
-                    width="7"
-                    height="7"
-                    rx="1"
-                    className={
-                      viewMode === "grid" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                </svg>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-10 px-3 rounded-none",
-                  viewMode === "list" && "bg-accent"
-                )}
-                onClick={() => setViewMode("list")}
-                aria-label="List view"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect
-                    x="3"
-                    y="4"
-                    width="18"
-                    height="2"
-                    rx="1"
-                    className={
-                      viewMode === "list" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                  <rect
-                    x="3"
-                    y="11"
-                    width="18"
-                    height="2"
-                    rx="1"
-                    className={
-                      viewMode === "list" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                  <rect
-                    x="3"
-                    y="18"
-                    width="18"
-                    height="2"
-                    rx="1"
-                    className={
-                      viewMode === "list" ? "fill-primary" : "fill-current"
-                    }
-                  />
-                </svg>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <QuickActions
-            onTemplates={handleCreateNewDoc}
-            onSettings={() => router.push("/dashboard/settings")}
-          />
-        </div>
-
-        {/* Favorites - Notion-like pinned items */}
-        <div className="mb-10">
-          <div className="flex items-center mb-3">
-            <Star className="h-4 w-4 mr-2 text-yellow-500" />
-            <h2 className="text-lg font-medium">Favorites</h2>
-          </div>
-          <div
-            className={cn(
-              "grid gap-3",
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            )}
-          >
-            {quickAccessItems.map((item) =>
-              viewMode === "grid" ? (
-                <Card
-                  key={item.id}
-                  className="group cursor-pointer hover:border-primary/20 hover:shadow-sm transition-all duration-300"
-                  onClick={() => handleOpenDocument(item.id)}
-                >
-                  <CardContent className="p-4 flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-muted/30 rounded flex items-center justify-center">
-                      <span className="text-xl">{item.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm mb-1 truncate">
-                        {item.title}
-                      </h3>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                        <span>Favorited</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card
-                  key={item.id}
-                  className="hover:bg-accent/40 cursor-pointer transition-colors"
-                  onClick={() => handleOpenDocument(item.id)}
-                >
-                  <CardContent className="p-3 flex items-center">
-                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center mr-3">
-                      <span>{item.icon}</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{item.title}</p>
-                    </div>
-                    <Star className="h-3.5 w-3.5 text-yellow-500 mr-1" />
-                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                  </CardContent>
-                </Card>
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Recent section */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-blue-500" />
-              <h2 className="text-lg font-medium">Recent</h2>
-            </div>
-          </div>
-
-          <div
-            className={cn(
-              "grid gap-3",
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            )}
-          >
-            {documentsLoading ? (
-              Array(4)
-                .fill(0)
-                .map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent
-                      className={cn(
-                        "p-4",
-                        viewMode === "grid" ? "h-24" : "h-16"
-                      )}
-                    >
-                      <div className="h-4 w-3/4 bg-muted rounded mb-3"></div>
-                      <div className="h-3 w-1/2 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))
-            ) : recentItems.length > 0 ? (
-              recentItems.map((doc: any) =>
-                viewMode === "grid" ? (
-                  <DocumentCard key={doc.id} document={doc} />
-                ) : (
-                  <Card
-                    key={doc.id}
-                    className="hover:bg-accent/40 cursor-pointer group transition-colors"
-                    onClick={() => handleOpenDocument(doc.id)}
-                  >
-                    <CardContent className="p-3 flex items-center">
-                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center mr-3">
-                        <span>{doc.emoji || "📄"}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">
-                          {doc.title || "Untitled"}
-                        </p>
-                      </div>
-                      <div className="text-xs text-muted-foreground mr-2">
-                        {new Date(
-                          doc.updatedAt || Date.now()
-                        ).toLocaleDateString()}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Rename</DropdownMenuItem>
-                          <DropdownMenuItem>Favorite</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                    </CardContent>
-                  </Card>
-                )
-              )
-            ) : (
-              <Card className="col-span-full border-dashed">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  <p className="mb-2">No recent documents</p>
-                  <Button size="sm" onClick={handleCreateNewDoc}>
-                    Create your first document
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Create new document card */}
-            {recentItems.length > 0 && (
-              <Card
-                className={cn(
-                  "cursor-pointer border-dashed hover:border-primary/50 hover:bg-accent/50 transition-all",
-                  viewMode === "list" && "col-span-full"
-                )}
-                onClick={handleCreateNewDoc}
-              >
-                <CardContent
-                  className={cn(
-                    "flex items-center justify-center text-muted-foreground gap-2",
-                    viewMode === "grid" ? "p-4 h-full flex-col" : "p-3"
-                  )}
-                >
-                  <Plus
-                    className={viewMode === "grid" ? "h-5 w-5" : "h-4 w-4"}
-                  />
-                  <p className="text-sm font-medium">New page</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-
-        {/* All pages section */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <FileText className="h-4 w-4 mr-2 text-green-500" />
-              <h2 className="text-lg font-medium">All pages</h2>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {filteredDocuments?.length || 0}{" "}
-              {filteredDocuments?.length === 1 ? "page" : "pages"}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Badge variant="outline">
+              {sortedDocuments.length} {sortedDocuments.length === 1 ? "note" : "notes"}
+            </Badge>
+            <Badge variant="outline">
+              {favoriteDocuments.length} pinned
             </Badge>
           </div>
+        </section>
 
-          <div
-            className={cn(
-              "grid gap-3",
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            )}
-          >
-            {documentsLoading ? (
-              Array(6)
-                .fill(0)
-                .map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent
-                      className={cn(
-                        "p-4",
-                        viewMode === "grid" ? "h-24" : "h-16"
-                      )}
-                    >
-                      <div className="h-4 w-3/4 bg-muted rounded mb-3"></div>
-                      <div className="h-3 w-1/2 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))
-            ) : filteredDocuments && filteredDocuments.length > 0 ? (
-              viewMode === "grid" ? (
-                filteredDocuments.map((doc: any) => (
-                  <DocumentCard key={doc.id} document={doc} />
-                ))
-              ) : (
-                filteredDocuments.map((doc: any) => (
-                  <Card
-                    key={doc.id}
-                    className="hover:bg-accent/40 cursor-pointer group transition-colors"
-                    onClick={() => handleOpenDocument(doc.id)}
-                  >
-                    <CardContent className="p-3 flex items-center">
-                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center mr-3">
-                        <span>{doc.emoji || "📄"}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">
-                          {doc.title || "Untitled"}
-                        </p>
-                      </div>
-                      <div className="text-xs text-muted-foreground mr-2">
-                        {new Date(
-                          doc.updatedAt || Date.now()
-                        ).toLocaleDateString()}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Rename</DropdownMenuItem>
-                          <DropdownMenuItem>Favorite</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                    </CardContent>
-                  </Card>
-                ))
-              )
-            ) : (
-              <Card className="col-span-full border-dashed">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  <p className="mb-2">
-                    {searchQuery
-                      ? "No pages match your search"
-                      : "You don't have any pages yet"}
-                  </p>
-                  <Button size="sm" onClick={handleCreateNewDoc}>
-                    Create your first page
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+        {favoriteDocuments.length > 0 && (
+          <DocumentSection
+            title="Pinned"
+            icon={<Star className="h-4 w-4 text-amber-500" />}
+            documents={favoriteDocuments}
+            onOpenDocument={(id) => router.push(`/dashboard/documents/${id}`)}
+          />
+        )}
 
-            {/* Create new document card */}
-            {filteredDocuments && filteredDocuments.length > 0 && (
-              <Card
-                className={cn(
-                  "cursor-pointer border-dashed hover:border-primary/50 hover:bg-accent/50 transition-all",
-                  viewMode === "list" && "col-span-full"
-                )}
-                onClick={handleCreateNewDoc}
-              >
-                <CardContent
-                  className={cn(
-                    "flex items-center justify-center text-muted-foreground gap-2",
-                    viewMode === "grid" ? "p-4 h-full flex-col" : "p-3"
-                  )}
-                >
-                  <Plus
-                    className={viewMode === "grid" ? "h-5 w-5" : "h-4 w-4"}
-                  />
-                  <p className="text-sm font-medium">New page</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
+        <DocumentSection
+          title="Recent"
+          icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+          documents={recentDocuments}
+          isLoading={documentsLoading}
+          emptyLabel="Import a ChatGPT share or create a new note to get started."
+          onOpenDocument={(id) => router.push(`/dashboard/documents/${id}`)}
+          onCreateDocument={() => setIsCreateDocumentOpen(true)}
+        />
 
-      {/* Create Document Dialog */}
+        <DocumentSection
+          title={searchQuery.trim() ? "Search results" : "All notes"}
+          icon={<FileText className="h-4 w-4 text-muted-foreground" />}
+          documents={filteredDocuments}
+          isLoading={documentsLoading}
+          emptyLabel={
+            searchQuery.trim()
+              ? "No notes match your search."
+              : "No notes yet."
+          }
+          onOpenDocument={(id) => router.push(`/dashboard/documents/${id}`)}
+          onCreateDocument={() => setIsCreateDocumentOpen(true)}
+        />
+      </main>
+
       <CreateDocument
         isHidden
         isOpen={isCreateDocumentOpen}
@@ -634,35 +163,118 @@ export function DashboardClient() {
   );
 }
 
-// Component-specific skeleton loaders
-function DocumentsSkeletonSection() {
+type DocumentSectionProps = {
+  title: string;
+  icon: ReactNode;
+  documents: DashboardDocument[];
+  isLoading?: boolean;
+  emptyLabel?: string;
+  onOpenDocument: (id: string) => void;
+  onCreateDocument?: () => void;
+};
+
+function DocumentSection({
+  title,
+  icon,
+  documents,
+  isLoading = false,
+  emptyLabel = "No notes found.",
+  onOpenDocument,
+  onCreateDocument,
+}: DocumentSectionProps) {
   return (
-    <Card className="animate-pulse">
-      <CardHeader className="pb-2">
-        <div className="h-5 w-32 bg-muted rounded mb-1"></div>
-      </CardHeader>
-      <CardContent className="space-y-3 p-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-12 bg-muted rounded"></div>
-        ))}
-      </CardContent>
-    </Card>
+    <section className="space-y-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h2 className="text-sm font-medium">{title}</h2>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-14 w-full rounded-md" />
+          ))}
+        </div>
+      ) : documents.length > 0 ? (
+        <div className="divide-y rounded-md border">
+          {documents.map((document) => (
+            <DocumentRow
+              key={document.id}
+              document={document}
+              onOpen={() => onOpenDocument(document.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed p-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>{emptyLabel}</p>
+          {onCreateDocument && (
+            <Button size="sm" variant="outline" onClick={onCreateDocument}>
+              New note
+            </Button>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
-function QuickActionsSkeletonSection() {
+function DocumentRow({
+  document,
+  onOpen,
+}: {
+  document: DashboardDocument;
+  onOpen: () => void;
+}) {
   return (
-    <Card className="animate-pulse">
-      <CardHeader className="pb-2">
-        <div className="h-5 w-24 bg-muted rounded mb-1"></div>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-16 bg-muted rounded"></div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className="group flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/50"
+      onClick={onOpen}
+    >
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+        <FileText className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">
+          {document.title || "Untitled"}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Edited {formatDate(document.updatedAt)}
+        </p>
+      </div>
+      <div
+        className={cn(
+          "opacity-0 transition-opacity group-hover:opacity-100",
+          document.favorite && "opacity-100"
+        )}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <FavoriteButton
+          documentId={document.id}
+          isFavorite={document.favorite || false}
+          size="sm"
+        />
+      </div>
+    </div>
   );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Skeleton className="h-36 w-full rounded-md" />
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Skeleton key={index} className="h-14 w-full rounded-md" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function formatDate(value: string | Date) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
 }
