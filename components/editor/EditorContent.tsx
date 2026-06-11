@@ -16,7 +16,6 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { BlockNoteEditor } from "@blocknote/core";
 import styles from "../CollaborativeEditor.module.css";
-import { AIButton } from "./AIButton";
 
 type EditorContentProps = {
   editor: BlockNoteEditor | null;
@@ -108,7 +107,6 @@ export function EditorContent({ editor, saveStatus }: EditorContentProps) {
 
               <CreateLinkButton key={"createLinkButton"} />
 
-              <AIButton key={"aiButton"} />
             </FormattingToolbar>
           )}
         />

@@ -29,10 +29,3 @@ export function getAIProvider() {
 export function getLanguageModel(model = DEFAULT_AI_MODEL) {
   return getAIProvider()(model);
 }
-
-export function getOpenAIClientConfig() {
-  return {
-    apiKey: process.env.OPENAI_API_KEY,
-    ...(compatibleBaseUrl ? { baseURL: compatibleBaseUrl } : {}),
-  };
-}

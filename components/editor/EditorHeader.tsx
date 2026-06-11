@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { BlockNoteEditor } from "@blocknote/core";
-import { AIToolbar } from "./AIToolbar";
 import { ExportButton } from "../ui/export-button";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
@@ -17,8 +16,6 @@ import {
   Lock,
   LayoutGrid,
   FileText,
-  Sparkles,
-  ChevronDown,
   Settings,
   Check,
   Download,
@@ -76,7 +73,6 @@ export function EditorHeader({
   );
 
   const [copied, setCopied] = useState(false);
-  const [isAIToolbarOpen, setIsAIToolbarOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   // Check if current user is the owner
@@ -150,31 +146,6 @@ export function EditorHeader({
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* AI Tools - only show when editor is available */}
-            {editor && (
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "h-8 px-2.5 gap-1 text-sm rounded-md",
-                        isAIToolbarOpen && "bg-accent"
-                      )}
-                      onClick={() => setIsAIToolbarOpen(!isAIToolbarOpen)}
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">AI</span>
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>AI writing assistant</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
             {/* Share button */}
             {isOwner && !isLoading && (
               <TooltipProvider delayDuration={300}>
@@ -372,19 +343,6 @@ export function EditorHeader({
           </div>
         </div>
       </div>
-
-      {/* AI Toolbar - only show when toolbar is toggled and editor is available */}
-      {isAIToolbarOpen && editor && (
-        <div className="border-t border-border bg-background/50 backdrop-blur-sm">
-          <div className="w-full max-w-screen-lg mx-auto px-4">
-            <AIToolbar
-              userId={userId || ""}
-              selectedText=""
-              onUpdate={() => {}}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Invite Dialog */}
       <InviteDialog
