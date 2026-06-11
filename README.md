@@ -64,8 +64,13 @@ LOCAL_MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DB=paper_ai
 JWT_SECRET=replace-with-a-local-secret
 OPENAI_API_KEY=sk-...
+AI_MODEL=gpt-4o-mini
+FAST_AI_MODEL=gpt-4o-mini
 NEXT_PUBLIC_PARTYKIT_HOST=localhost:1999
 ```
+
+For OpenAI-compatible gateways, also set `OPENAI_API_BASE_URL` and update
+`AI_MODEL` / `FAST_AI_MODEL` to models supported by that gateway.
 
 Run the app and collaboration server:
 

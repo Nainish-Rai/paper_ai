@@ -10,9 +10,13 @@ import {
 import { RateLimiter } from "./rateLimiter";
 import { AICache } from "./cache";
 import { AIMonitoring } from "./monitoring";
-import { getLanguageModel } from "./provider";
+import {
+  DEFAULT_AI_MODEL,
+  getLanguageModel,
+  getOpenAIClientConfig,
+} from "./provider";
 
-const MODEL_NAME = "llama-3.3-70b-versatile";
+const MODEL_NAME = DEFAULT_AI_MODEL;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
@@ -31,10 +35,7 @@ export class AIService {
   private monitoring: AIMonitoring;
 
   constructor(userId: string) {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY!,
-      baseURL: "https://api.groq.com/openai/v1",
-    });
+    this.openai = new OpenAI(getOpenAIClientConfig());
     this.rateLimiter = new RateLimiter(userId);
     this.cache = new AICache();
     this.monitoring = new AIMonitoring();
