@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteEditor } from "@blocknote/core";
+import { PartialBlock } from "@blocknote/core";
 import { useEditorContext } from "@/components/editor/EditorProvider";
 import { useAuth } from "@/lib/auth/provider";
 import { useCollaborationUser } from "@/hooks/useCollaborationUser";
@@ -13,11 +13,15 @@ export function useDocumentData(documentId: string) {
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [documentBlocks, setDocumentBlocks] = useState<PartialBlock[] | null>(
+    null
+  );
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const saveStatusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const seededFromDatabaseRef = useRef(false);
 
   // Verify document access
   useEffect(() => {
@@ -31,6 +35,9 @@ export function useDocumentData(documentId: string) {
           }
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
+
+        const document = await response.json();
+        setDocumentBlocks(parseDocumentBlocks(document.content));
       } catch (error) {
         console.error("Failed to fetch API content:", error);
         setError("Failed to load document");
@@ -41,30 +48,6 @@ export function useDocumentData(documentId: string) {
 
     checkAccess();
   }, [documentId]);
-
-  // Listen for document initialization
-  useEffect(() => {
-    if (!isLoading && !error && !accessDenied) {
-      const handleMessage = (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "init_content") {
-            // Initialize the Yjs document fragment directly
-            const fragment = doc.getXmlFragment("document-store");
-            doc.transact(() => {
-              fragment.delete(0, fragment.length);
-              fragment.push([data.content]);
-            });
-          }
-        } catch (error) {
-          console.error("Error processing message:", error);
-        }
-      };
-
-      provider.on("message", handleMessage);
-      return () => provider.off("message", handleMessage);
-    }
-  }, [isLoading, error, accessDenied, doc, provider]);
 
   // Create the editor with collaboration enabled
   const editor = useCreateBlockNote({
@@ -83,6 +66,25 @@ export function useDocumentData(documentId: string) {
       },
     },
   });
+
+  useEffect(() => {
+    if (
+      !editor ||
+      !documentBlocks ||
+      documentBlocks.length === 0 ||
+      seededFromDatabaseRef.current
+    ) {
+      return;
+    }
+
+    if (!isEmptyEditorDocument(editor.document)) {
+      seededFromDatabaseRef.current = true;
+      return;
+    }
+
+    editor.replaceBlocks(editor.document, documentBlocks);
+    seededFromDatabaseRef.current = true;
+  }, [documentBlocks, editor]);
 
   // Save content to database periodically
   useEffect(() => {
@@ -146,4 +148,23 @@ export function useDocumentData(documentId: string) {
     editor,
     saveStatus,
   };
+}
+
+function parseDocumentBlocks(content: unknown): PartialBlock[] | null {
+  if (typeof content !== "string" || !content.trim()) return null;
+
+  try {
+    const parsed = JSON.parse(content);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function isEmptyEditorDocument(blocks: readonly { content?: unknown }[]) {
+  if (blocks.length === 0) return true;
+  if (blocks.length > 1) return false;
+
+  const [block] = blocks;
+  return !block.content || (Array.isArray(block.content) && block.content.length === 0);
 }

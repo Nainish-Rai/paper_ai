@@ -44,6 +44,7 @@ export function EditorProvider({
       doc,
       {
         connect: true,
+        party: "document",
       }
     );
 

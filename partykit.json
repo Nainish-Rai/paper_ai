@@ -1,7 +1,8 @@
 {
   "name": "paper-ai",
+  "compatibilityDate": "2026-06-09",
   "main": "party/presence.ts",
   "parties": {
-    "document": "party/presence.ts"
+    "document": "party/yjs.ts"
   }
 }

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:collab": "partykit dev --port 1999",
+    "dev:full": "sh -c 'npm run dev:collab & npm run dev'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
